@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Copilot CLI — Enterprise Training Guide · bcrao</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:      #0b0f1a;
+    --surface:  #111827;
+    --card:     #161d2e;
+    --card-alt: #1a2236;
+    --border:   #1f2d45;
+    --border-accent: #2d3a52;
+    --ms-blue:  #0078d4;
+    --ms-teal:  #00b4d8;
+    --ms-green: #6EE7B7;
+    --ms-amber: #fbbf24;
+    --ms-purple:#a78bfa;
+    --ms-red:   #ef4444;
+    --txt:      #e2e8f0;
+    --muted:    #8899aa;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--txt);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 17px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(100deg, var(--ms-blue), var(--ms-teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--txt); }
+
+  /* ── STICKY TOC ── */
+  .toc-bar {
+    position: sticky;
+    top: 60px;
+    z-index: 90;
+    background: rgba(11,15,26,.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: .5rem 0;
+    overflow-x: auto;
+  }
+  .toc-bar nav-inner-toc {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: .25rem;
+    padding: 0 24px;
+    white-space: nowrap;
+  }
+  .toc-bar a {
+    display: inline-block;
+    padding: .35rem .9rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .03em;
+    transition: all .2s;
+  }
+  .toc-bar a:hover { color: var(--txt); background: rgba(255,255,255,.04); }
+  .toc-bar-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: .25rem;
+    padding: 0 24px;
+    white-space: nowrap;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    padding: 80px 24px 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 15% 50%, rgba(0,120,212,.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 85% 40%, rgba(0,180,216,.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 90%, rgba(167,139,250,.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,120,212,.15);
+    border: 1px solid rgba(0,120,212,.35);
+    color: var(--ms-teal);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+  }
+  .hero-badge .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--ms-green);
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; }
+    50% { opacity: .4; }
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.07;
+    letter-spacing: -.02em;
+    margin-bottom: 18px;
+  }
+  .gradient-text {
+    background: linear-gradient(100deg, var(--ms-blue) 0%, var(--ms-teal) 50%, var(--ms-green) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 620px;
+    font-weight: 300;
+    margin-bottom: 28px;
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    align-items: center;
+  }
+  .hero-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .post-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+  .tag-ms  { background: rgba(0,120,212,.15);   color: var(--ms-teal);   border: 1px solid rgba(0,120,212,.3);   }
+  .tag-cli { background: rgba(0,180,216,.12);   color: var(--ms-teal);   border: 1px solid rgba(0,180,216,.3);   }
+  .tag-sec { background: rgba(110,231,183,.12); color: var(--ms-green);  border: 1px solid rgba(110,231,183,.3); }
+  .tag-ent { background: rgba(167,139,250,.12); color: var(--ms-purple); border: 1px solid rgba(167,139,250,.3); }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 64px 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  /* ── SECTION HEADERS ── */
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    font-family: 'Syne', sans-serif;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--ms-teal);
+    margin-bottom: 1rem;
+  }
+  .section-label .num {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    background: rgba(0,180,216,.12);
+    display: grid; place-items: center;
+    font-size: .7rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: .75rem;
+  }
+  .section-desc {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 700px;
+    font-weight: 300;
+    margin-bottom: 2.5rem;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    transition: border-color .3s;
+  }
+  .card:hover { border-color: rgba(0,120,212,.35); }
+  .card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: .6rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .card h3 .icon {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .card p, .card li { color: var(--muted); font-size: .95rem; font-weight: 300; }
+  .card ul { padding-left: 1.3rem; margin-top: .5rem; }
+  .card li { margin-bottom: .35rem; }
+
+  /* ── GRIDS ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  @media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    position: relative;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .5rem 1rem;
+    background: rgba(255,255,255,.03);
+    border-bottom: 1px solid var(--border);
+    font-size: .72rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .code-header .lang {
+    padding: .2rem .6rem;
+    border-radius: 6px;
+    background: rgba(0,120,212,.12);
+    color: var(--ms-teal);
+    font-weight: 600;
+  }
+  .code-block pre {
+    padding: 1.2rem 1.4rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .82rem;
+    line-height: 1.65;
+    color: #c9d1d9;
+  }
+  .code-block .comment { color: #6e7681; }
+  .code-block .keyword { color: #ff7b72; }
+  .code-block .string  { color: #a5d6ff; }
+  .code-block .cmd     { color: #79c0ff; }
+  .code-block .flag    { color: #d2a8ff; }
+  .code-block .var     { color: #ffa657; }
+  p code, li code, td code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .82em;
+    padding: .15rem .4rem;
+    border-radius: 5px;
+    background: rgba(0,120,212,.1);
+    color: var(--ms-teal);
+  }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    display: flex;
+    gap: .8rem;
+    align-items: flex-start;
+    font-size: .92rem;
+  }
+  .callout .callout-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: .1rem; }
+  .callout p, .callout div { color: var(--muted); font-weight: 300; }
+  .callout strong { color: var(--txt); }
+  .callout a { color: var(--ms-teal); }
+  .callout.info    { background: rgba(0,120,212,.06);    border: 1px solid rgba(0,120,212,.2);    }
+  .callout.warn    { background: rgba(251,191,36,.06);   border: 1px solid rgba(251,191,36,.2);   }
+  .callout.danger  { background: rgba(239,68,68,.06);    border: 1px solid rgba(239,68,68,.2);    }
+  .callout.success { background: rgba(110,231,183,.06);  border: 1px solid rgba(110,231,183,.2);  }
+
+  /* ── DIAGRAMS ── */
+  .diagram {
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+  .diagram-title {
+    text-align: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ms-teal);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+    padding: .5rem 0;
+  }
+  .flow-node {
+    background: var(--card);
+    border: 1px solid var(--border-accent);
+    border-radius: 12px;
+    padding: .9rem 1.1rem;
+    text-align: center;
+    min-width: 120px;
+    transition: transform .2s;
+  }
+  .flow-node:hover { transform: translateY(-3px); }
+  .flow-node .emoji { font-size: 1.4rem; margin-bottom: .3rem; }
+  .flow-node .label { font-weight: 700; font-size: .8rem; color: var(--txt); font-family: 'Syne', sans-serif; }
+  .flow-node .sub { font-size: .7rem; color: var(--muted); margin-top: .15rem; }
+  .flow-arrow { font-size: 1.2rem; color: var(--ms-blue); padding: 0 .5rem; flex-shrink: 0; }
+
+  /* Arch grid */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-top: .5rem;
+  }
+  @media (max-width: 700px) { .arch-grid { grid-template-columns: 1fr; } }
+  .arch-layer {
+    border: 1px solid var(--border-accent);
+    border-radius: 14px;
+    padding: 1.2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .arch-layer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    opacity: .08;
+  }
+  .arch-layer.blue::before   { background: var(--ms-blue); }
+  .arch-layer.teal::before   { background: var(--ms-teal); }
+  .arch-layer.green::before  { background: var(--ms-green); }
+  .arch-layer.purple::before { background: var(--ms-purple); }
+  .arch-layer.amber::before  { background: var(--ms-amber); }
+  .arch-layer .layer-icon  { font-size: 1.8rem; margin-bottom: .4rem; }
+  .arch-layer .layer-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .85rem; margin-bottom: .25rem; }
+  .arch-layer .layer-desc  { font-size: .75rem; color: var(--muted); }
+
+  /* ── STEPS ── */
+  .steps { counter-reset: step-counter; }
+  .step {
+    position: relative;
+    padding-left: 3.2rem;
+    margin-bottom: 2rem;
+  }
+  .step::before {
+    counter-increment: step-counter;
+    content: counter(step-counter);
+    position: absolute;
+    left: 0; top: 0;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--ms-blue), var(--ms-teal));
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: .82rem;
+    color: #fff;
+  }
+  .step::after {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 42px;
+    bottom: -1.2rem;
+    width: 2px;
+    background: var(--border-accent);
+  }
+  .step:last-child::after { display: none; }
+  .step h4 { font-family: 'Syne', sans-serif; font-size: .95rem; font-weight: 700; margin-bottom: .25rem; }
+  .step p  { color: var(--muted); font-size: .9rem; font-weight: 300; }
+
+  /* ── TABLE ── */
+  .data-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: .88rem; }
+  .data-table thead th {
+    background: rgba(0,120,212,.08);
+    padding: .7rem 1rem;
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ms-teal);
+    border-bottom: 2px solid var(--border-accent);
+  }
+  .data-table td {
+    padding: .65rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-weight: 300;
+  }
+  .data-table tbody tr:hover { background: rgba(255,255,255,.02); }
+
+  /* ── INLINE TAGS ── */
+  .tag {
+    display: inline-block;
+    padding: .18rem .6rem;
+    border-radius: 6px;
+    font-size: .7rem;
+    font-weight: 600;
+    margin-right: .3rem;
+    margin-bottom: .3rem;
+  }
+  .tag.blue   { background: rgba(0,120,212,.12);   color: var(--ms-teal);   }
+  .tag.green  { background: rgba(110,231,183,.12); color: var(--ms-green);  }
+  .tag.amber  { background: rgba(251,191,36,.12);  color: var(--ms-amber);  }
+  .tag.purple { background: rgba(167,139,250,.12); color: var(--ms-purple); }
+
+  /* ── SHIELD ROW ── */
+  .shield-row {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+  .shield-item {
+    flex: 1;
+    min-width: 140px;
+    max-width: 200px;
+    background: var(--card);
+    border: 1px solid var(--border-accent);
+    border-radius: 14px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .shield-item .shield-icon  { font-size: 1.8rem; margin-bottom: .4rem; }
+  .shield-item .shield-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .82rem; margin-bottom: .2rem; }
+  .shield-item .shield-desc  { font-size: .73rem; color: var(--muted); }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 2rem; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: .5rem; bottom: .5rem;
+    width: 3px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--ms-blue), var(--ms-teal), var(--ms-green));
+  }
+  .timeline-item { margin-bottom: 2rem; position: relative; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2rem;
+    top: .45rem;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: var(--ms-teal);
+    border: 2px solid var(--ink);
+  }
+  .timeline-item h4 { font-family: 'Syne', sans-serif; font-size: .9rem; font-weight: 700; margin-bottom: .2rem; }
+  .timeline-item p  { font-size: .88rem; color: var(--muted); font-weight: 300; }
+
+  /* ── REFERENCES ── */
+  .ref-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+  .ref-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem;
+    text-decoration: none;
+    transition: border-color .3s, transform .2s;
+  }
+  .ref-card:hover { border-color: rgba(0,120,212,.4); transform: translateY(-2px); }
+  .ref-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+  }
+  .ref-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .88rem; color: var(--txt); margin-bottom: .15rem; }
+  .ref-url   { font-size: .72rem; color: var(--ms-teal); font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+  .ref-desc  { font-size: .78rem; color: var(--muted); margin-top: .15rem; font-weight: 300; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 40px 24px;
+    text-align: center;
+  }
+  footer p   { font-size: 13px; color: var(--muted); }
+  footer a   { color: var(--ms-teal); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .nav-links { display: none; }
+    .toc-bar a { padding: .3rem .6rem; }
+  }
+
+  @media print {
+    .toc-bar, nav { display: none; }
+    .card, .diagram, .code-block { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">bcrao.dev</a>
+    <ul class="nav-links">
+      <li><a href="/">Blog</a></li>
+      <li><a href="https://github.com/Bcrao" target="_blank">GitHub</a></li>
+      <li><a href="https://www.linkedin.com/in/bcrao" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- STICKY TOC -->
+<div class="toc-bar">
+  <div class="toc-bar-inner">
+    <a href="#overview">Overview</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#admin-setup">Admin Setup</a>
+    <a href="#installation">Installation</a>
+    <a href="#authentication">Auth</a>
+    <a href="#network">Network</a>
+    <a href="#configuration">Config</a>
+    <a href="#workflows">Workflows</a>
+    <a href="#awesome">Awesome Copilot</a>
+    <a href="#security">Security</a>
+    <a href="#rollout">Rollout</a>
+    <a href="#references">References</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge"><span class="dot"></span> Enterprise Training Guide</div>
+    <div class="hero-tags">
+      <span class="post-tag tag-ms">GitHub Copilot</span>
+      <span class="post-tag tag-cli">CLI</span>
+      <span class="post-tag tag-ent">Enterprise</span>
+      <span class="post-tag tag-sec">Security</span>
+    </div>
+    <h1>GitHub <span class="gradient-text">Copilot CLI</span></h1>
+    <p class="hero-sub">A comprehensive setup and onboarding guide for enterprise development teams — from admin policies and network configuration to developer workflows, the Awesome Copilot ecosystem, and security governance.</p>
+    <div class="hero-meta">
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        April 2026
+      </span>
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        20 min read
+      </span>
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        All skill levels
+      </span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ 01 OVERVIEW ═══ -->
+<section id="overview">
+  <div class="container">
+    <div class="section-label"><span class="num">01</span> Overview</div>
+    <h2 class="section-title">What Is Copilot CLI?</h2>
+    <p class="section-desc">GitHub Copilot CLI is a terminal-native AI coding agent. It brings the full power of Copilot directly to your command line — planning, building, debugging, and shipping code through natural language, without ever leaving your shell.</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(0,120,212,.12);color:var(--ms-teal);">⚡</span> Agentic</h3>
+        <p>Plans complex tasks, executes multi-step workflows, edits files, runs tests, and iterates autonomously until the job is done.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(110,231,183,.12);color:var(--ms-green);">🔗</span> GitHub-Native</h3>
+        <p>Access repositories, issues, and pull requests using natural language — authenticated with your existing GitHub account.</p>
+      </div>
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(167,139,250,.12);color:var(--ms-purple);">🧠</span> Multi-Model</h3>
+        <p>Choose from models by Anthropic, Google, and OpenAI. Use <code>/model</code> to switch or <code>/fleet</code> to run multiple models in parallel.</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div><strong>Plan Availability:</strong> Copilot CLI is included with all GitHub Copilot plans — Free, Pro, Pro+, Business, and Enterprise. No additional billing is required for Business and Enterprise subscribers; however, an organization admin must enable it from the Policies page.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 02 ARCHITECTURE ═══ -->
+<section id="architecture">
+  <div class="container">
+    <div class="section-label"><span class="num">02</span> Architecture</div>
+    <h2 class="section-title">Enterprise Architecture Overview</h2>
+    <p class="section-desc">How Copilot CLI fits into your enterprise development stack.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Enterprise Copilot CLI Architecture</div>
+      <div class="arch-grid">
+        <div class="arch-layer blue">
+          <div class="layer-icon">👩‍💻</div>
+          <div class="layer-title">Developer Workstation</div>
+          <div class="layer-desc">Terminal / Shell<br>Node.js v22+<br>Copilot CLI Agent</div>
+        </div>
+        <div class="arch-layer teal">
+          <div class="layer-icon">🌐</div>
+          <div class="layer-title">Network Layer</div>
+          <div class="layer-desc">Corporate Proxy<br>SSL Inspection<br>Firewall Rules</div>
+        </div>
+        <div class="arch-layer green">
+          <div class="layer-icon">☁️</div>
+          <div class="layer-title">GitHub Cloud</div>
+          <div class="layer-desc">Copilot API<br>LLM Endpoints<br>GitHub MCP Server</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin:1.2rem 0 .5rem;">
+        <span style="color:var(--muted);font-size:.76rem;">▼ Extended Integration Layer ▼</span>
+      </div>
+      <div class="arch-grid">
+        <div class="arch-layer purple">
+          <div class="layer-icon">🔌</div>
+          <div class="layer-title">MCP Servers</div>
+          <div class="layer-desc">Custom Tools<br>Third-party Integrations<br>Internal APIs</div>
+        </div>
+        <div class="arch-layer amber">
+          <div class="layer-icon">📦</div>
+          <div class="layer-title">Plugin Ecosystem</div>
+          <div class="layer-desc">Awesome Copilot<br>Community Plugins<br>Custom Agents &amp; Skills</div>
+        </div>
+        <div class="arch-layer blue">
+          <div class="layer-icon">🛡️</div>
+          <div class="layer-title">Enterprise Controls</div>
+          <div class="layer-desc">AI Policies<br>Model Selection<br>Audit Logging</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="diagram">
+      <div class="diagram-title">Request Lifecycle</div>
+      <div class="flow">
+        <div class="flow-node">
+          <div class="emoji">💬</div>
+          <div class="label">Prompt</div>
+          <div class="sub">Developer asks</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="emoji">🔐</div>
+          <div class="label">Auth</div>
+          <div class="sub">GitHub Token</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="emoji">🔀</div>
+          <div class="label">Proxy</div>
+          <div class="sub">Corp Network</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="emoji">🤖</div>
+          <div class="label">LLM</div>
+          <div class="sub">Model Inference</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="emoji">🛠️</div>
+          <div class="label">Agent</div>
+          <div class="sub">Plan &amp; Execute</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="emoji">✅</div>
+          <div class="label">Result</div>
+          <div class="sub">Code Changes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 03 ADMIN SETUP ═══ -->
+<section id="admin-setup">
+  <div class="container">
+    <div class="section-label"><span class="num">03</span> Administrator Setup</div>
+    <h2 class="section-title">Enterprise Admin Configuration</h2>
+    <p class="section-desc">Before developers can use Copilot CLI, an enterprise or organization admin must enable it and configure policies.</p>
+
+    <div class="steps">
+      <div class="step">
+        <h4>Verify Copilot Subscription</h4>
+        <p>Navigate to your Enterprise settings on GitHub.com. Go to <strong>Settings → Getting Started</strong> and confirm your payment method is active with a Copilot Business or Enterprise plan.</p>
+      </div>
+      <div class="step">
+        <h4>Enable Copilot CLI Policy</h4>
+        <p>Go to <strong>AI Controls → Copilot</strong>. In the "Copilot Clients" section, locate <strong>Copilot CLI</strong> and set the policy to "Enabled everywhere" or "Let organizations decide." If set to "Disabled everywhere," no users can access the CLI.</p>
+      </div>
+      <div class="step">
+        <h4>Configure AI Model Access</h4>
+        <p>Users can only access models enabled at the enterprise level. Enable preferred models (Claude Sonnet 4, GPT-5, Gemini 3 Pro, etc.) in AI Controls. Developers use <code>/model</code> to see available models.</p>
+      </div>
+      <div class="step">
+        <h4>Assign Copilot Seats</h4>
+        <p>Ensure users have an assigned Copilot seat from an organization within the enterprise. Consider a self-service model where developers can claim licenses without approval for faster adoption.</p>
+      </div>
+      <div class="step">
+        <h4>Configure Network Allowlists</h4>
+        <p>Add required domains to your corporate firewall (see <a href="#network" style="color:var(--ms-teal);">Network Configuration</a> below). Install custom SSL certificates for proxy inspection if applicable.</p>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div><strong>Audit Trail:</strong> Updates to enterprise policies that affect Copilot CLI are recorded in the enterprise audit log. Model selections, MCP server policies, and Copilot CLI enable/disable actions are all auditable events.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 04 INSTALLATION ═══ -->
+<section id="installation">
+  <div class="container">
+    <div class="section-label"><span class="num">04</span> Installation</div>
+    <h2 class="section-title">Installing Copilot CLI</h2>
+    <p class="section-desc">Multiple installation methods are supported across macOS, Linux, and Windows. Node.js v22 or later is a prerequisite for all npm-based installations.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(251,191,36,.12);color:var(--ms-amber);">📦</span> npm (All Platforms)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="lang">bash</span></div>
+          <pre><span class="comment"># Prerequisite: Node.js 22+</span>
+<span class="cmd">npm</span> <span class="flag">install</span> <span class="flag">-g</span> <span class="string">@github/copilot</span>
+
+<span class="comment"># Launch</span>
+<span class="cmd">copilot</span></pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(110,231,183,.12);color:var(--ms-green);">🍺</span> Homebrew (macOS/Linux)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="lang">bash</span></div>
+          <pre><span class="cmd">brew</span> <span class="flag">install</span> <span class="string">github/copilot-cli/copilot-cli</span>
+
+<span class="comment"># Launch</span>
+<span class="cmd">copilot</span></pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(0,120,212,.12);color:var(--ms-teal);">🪟</span> WinGet (Windows)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="lang">powershell</span></div>
+          <pre><span class="cmd">winget</span> <span class="flag">install</span> <span class="string">GitHub.CopilotCLI</span>
+
+<span class="comment"># Launch</span>
+<span class="cmd">copilot</span></pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(167,139,250,.12);color:var(--ms-purple);">📜</span> Install Script (macOS/Linux)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="lang">bash</span></div>
+          <pre><span class="comment"># Quick install script</span>
+<span class="cmd">curl</span> <span class="flag">-fsSL</span> \
+  https://cli.github.com/copilot/install.sh \
+  | <span class="cmd">bash</span>
+
+<span class="comment"># Install as root to /usr/local/bin</span>
+<span class="cmd">curl</span> <span class="flag">-fsSL</span> \
+  https://cli.github.com/copilot/install.sh \
+  | <span class="keyword">sudo</span> <span class="cmd">bash</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <div><strong>Custom Install Path:</strong> When using the install script, set <code>PREFIX</code> to install to a custom directory. Defaults to <code>/usr/local</code> when run as root or <code>$HOME/.local</code> for non-root users. Set <code>VERSION</code> to pin a specific release.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 05 AUTH ═══ -->
+<section id="authentication">
+  <div class="container">
+    <div class="section-label"><span class="num">05</span> Authentication</div>
+    <h2 class="section-title">Authentication Methods</h2>
+    <p class="section-desc">Two primary authentication methods are available — interactive OAuth login or Personal Access Token (PAT).</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(110,231,183,.12);color:var(--ms-green);">🔑</span> Interactive Login (Recommended)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="lang">bash</span></div>
+          <pre><span class="comment"># Start Copilot CLI</span>
+<span class="cmd">copilot</span>
+
+<span class="comment"># Inside the session, run:</span>
+<span class="cmd">/login</span>
+
+<span class="comment"># Follow the on-screen instructions</span>
+<span class="comment"># to authenticate via browser</span></pre>
+        </div>
+        <p>Best for individual developer onboarding. Opens a browser-based OAuth flow for seamless authentication.</p>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(251,191,36,.12);color:var(--ms-amber);">🎫</span> Personal Access Token (PAT)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="lang">bash</span></div>
+          <pre><span class="comment"># Create a fine-grained PAT at:</span>
+<span class="comment"># github.com/settings/personal-access-tokens/new</span>
+<span class="comment"># Enable "Copilot Requests" permission</span>
+
+<span class="comment"># Set the token (checked in this order):</span>
+<span class="keyword">export</span> <span class="var">COPILOT_GITHUB_TOKEN</span>=<span class="string">"ghp_xxxxx"</span>
+<span class="comment"># OR</span>
+<span class="keyword">export</span> <span class="var">GH_TOKEN</span>=<span class="string">"ghp_xxxxx"</span>
+<span class="comment"># OR</span>
+<span class="keyword">export</span> <span class="var">GITHUB_TOKEN</span>=<span class="string">"ghp_xxxxx"</span></pre>
+        </div>
+        <p>Best for CI/CD pipelines and scripted/programmatic usage. Token variables are checked in the order listed above.</p>
+      </div>
+    </div>
+
+    <div class="callout danger">
+      <span class="callout-icon">🔒</span>
+      <div><strong>Security Note:</strong> Never commit PATs to source control. Store tokens in a secrets manager or environment-specific configuration. Rotate tokens regularly according to your enterprise's security policy.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 06 NETWORK ═══ -->
+<section id="network">
+  <div class="container">
+    <div class="section-label"><span class="num">06</span> Network Configuration</div>
+    <h2 class="section-title">Firewall &amp; Proxy Setup</h2>
+    <p class="section-desc">Enterprise networks require specific domain allowlisting and proxy configuration for Copilot CLI to communicate with GitHub's services.</p>
+
+    <h3 style="font-family:'Syne',sans-serif;font-size:.95rem;margin-bottom:1rem;">Required Domain Allowlist (Port 443)</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>Domain</th><th>Purpose</th><th>Required</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>github.com</code></td><td>Authentication &amp; API</td><td>✅ Yes</td></tr>
+        <tr><td><code>api.github.com</code></td><td>REST / GraphQL API</td><td>✅ Yes</td></tr>
+        <tr><td><code>copilot.github.com</code></td><td>Copilot service endpoint</td><td>✅ Yes</td></tr>
+        <tr><td><code>*.githubusercontent.com</code></td><td>Content delivery &amp; proxy</td><td>✅ Yes</td></tr>
+        <tr><td><code>*.actions.githubusercontent.com</code></td><td>Cloud agent / Actions</td><td>For cloud agent</td></tr>
+        <tr><td><code>login.microsoftonline.com</code></td><td>SSO (if using Azure AD)</td><td>If SSO enabled</td></tr>
+      </tbody>
+    </table>
+
+    <div class="card" style="margin-top:1.5rem;">
+      <h3><span class="icon" style="background:rgba(0,180,216,.12);color:var(--ms-teal);">🌐</span> Proxy Environment Variables</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="lang">bash</span></div>
+        <pre><span class="comment"># Standard proxy configuration</span>
+<span class="keyword">export</span> <span class="var">HTTP_PROXY</span>=<span class="string">"http://proxy.company.com:8080"</span>
+<span class="keyword">export</span> <span class="var">HTTPS_PROXY</span>=<span class="string">"http://proxy.company.com:8080"</span>
+
+<span class="comment"># For corporate SSL inspection — point to CA bundle</span>
+<span class="keyword">export</span> <span class="var">NODE_EXTRA_CA_CERTS</span>=<span class="string">"/path/to/corporate-ca-bundle.pem"</span>
+
+<span class="comment"># Verify SSL inspection status</span>
+<span class="cmd">openssl</span> s_client <span class="flag">-connect</span> api.github.com:443 \
+  <span class="flag">-proxy</span> proxy.company.com:8080 2>/dev/null \
+  | <span class="cmd">openssl</span> x509 <span class="flag">-noout -issuer</span></pre>
+      </div>
+    </div>
+
+    <div class="diagram">
+      <div class="diagram-title">Network Security Layers</div>
+      <div class="shield-row">
+        <div class="shield-item">
+          <div class="shield-icon">🧱</div>
+          <div class="shield-title">Firewall</div>
+          <div class="shield-desc">Domain allowlisting on port 443 for GitHub endpoints</div>
+        </div>
+        <div class="shield-item">
+          <div class="shield-icon">🔀</div>
+          <div class="shield-title">HTTP Proxy</div>
+          <div class="shield-desc">Basic or Kerberos auth; route traffic through corporate proxy</div>
+        </div>
+        <div class="shield-item">
+          <div class="shield-icon">🔐</div>
+          <div class="shield-title">SSL Inspection</div>
+          <div class="shield-desc">Corporate CA certificates for MITM proxy inspection</div>
+        </div>
+        <div class="shield-item">
+          <div class="shield-icon">🛡️</div>
+          <div class="shield-title">WebSocket</div>
+          <div class="shield-desc">Ensure WS connections are allowed to GitHub endpoints</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div><strong>Kerberos Auth:</strong> Copilot supports Kerberos proxy authentication. Ensure the appropriate krb5 library is installed and an active ticket exists for the proxy service. This provides stronger security than basic auth by avoiding unencrypted credentials.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 07 CONFIGURATION ═══ -->
+<section id="configuration">
+  <div class="container">
+    <div class="section-label"><span class="num">07</span> Configuration</div>
+    <h2 class="section-title">CLI Configuration &amp; Permissions</h2>
+    <p class="section-desc">Configure trusted directories, tool permissions, and path access to align with your organization's security posture.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(0,120,212,.12);color:var(--ms-teal);">📁</span> Trusted Directories</h3>
+        <p>On first launch, you're prompted to trust the current directory. Configuration is stored in <code>~/.copilot/config.json</code>.</p>
+        <div class="code-block">
+          <div class="code-header"><span class="lang">json</span></div>
+          <pre>{
+  <span class="string">"trusted_folders"</span>: [
+    <span class="string">"/home/dev/projects"</span>,
+    <span class="string">"/opt/company/repos"</span>
+  ]
+}</pre>
+        </div>
+        <p>Override the config location with the <code>COPILOT_HOME</code> environment variable.</p>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(239,68,68,.12);color:var(--ms-red);">🔧</span> Tool Permissions</h3>
+        <p>Copilot asks approval before using tools like <code>touch</code>, <code>chmod</code>, <code>node</code>, or <code>sed</code>. Control with flags:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="lang">bash</span></div>
+          <pre><span class="comment"># Interactive mode (recommended)</span>
+<span class="cmd">copilot</span>
+
+<span class="comment"># Allow all tools (use cautiously!)</span>
+<span class="cmd">copilot</span> <span class="flag">--allow-all-tools</span>
+
+<span class="comment"># Allow all paths</span>
+<span class="cmd">copilot</span> <span class="flag">--allow-all-paths</span>
+
+<span class="comment"># Programmatic mode with auto-approve</span>
+<span class="cmd">copilot</span> <span class="flag">-p</span> <span class="string">"fix the tests"</span> \
+  <span class="flag">--allow-all-tools</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon" style="background:rgba(167,139,250,.12);color:var(--ms-purple);">🧩</span> LSP Server Configuration</h3>
+      <p>Copilot CLI supports Language Server Protocol for enhanced code intelligence. LSP servers must be installed separately and configured at user or repo level:</p>
+      <div class="code-block">
+        <div class="code-header"><span class="lang">json — ~/.copilot/lsp-config.json</span></div>
+        <pre>{
+  <span class="string">"servers"</span>: {
+    <span class="string">"typescript"</span>: {
+      <span class="string">"command"</span>: <span class="string">"typescript-language-server"</span>,
+      <span class="string">"args"</span>: [<span class="string">"--stdio"</span>]
+    },
+    <span class="string">"python"</span>: {
+      <span class="string">"command"</span>: <span class="string">"pylsp"</span>,
+      <span class="string">"args"</span>: []
+    }
+  }
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 08 WORKFLOWS ═══ -->
+<section id="workflows">
+  <div class="container">
+    <div class="section-label"><span class="num">08</span> Developer Workflows</div>
+    <h2 class="section-title">Core Workflows &amp; Commands</h2>
+    <p class="section-desc">Master the modes, slash commands, and agentic workflows that make Copilot CLI a productivity multiplier.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Copilot CLI Operating Modes</div>
+      <div class="flow">
+        <div class="flow-node" style="border-color:rgba(0,120,212,.4);">
+          <div class="emoji">💬</div>
+          <div class="label">Ask / Execute</div>
+          <div class="sub">Default mode<br><em>Shift+Tab to switch</em></div>
+        </div>
+        <div class="flow-arrow">⇄</div>
+        <div class="flow-node" style="border-color:rgba(0,180,216,.4);">
+          <div class="emoji">📋</div>
+          <div class="label">Plan Mode</div>
+          <div class="sub">Structured planning<br><em>Shift+Tab to switch</em></div>
+        </div>
+        <div class="flow-arrow">⇄</div>
+        <div class="flow-node" style="border-color:rgba(110,231,183,.4);">
+          <div class="emoji">🤖</div>
+          <div class="label">Autopilot Mode</div>
+          <div class="sub">Fully autonomous<br><em>No approval prompts</em></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Syne',sans-serif;font-size:.95rem;margin-bottom:1rem;">Essential Slash Commands</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>Command</th><th>Description</th><th>Category</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/login</code></td><td>Authenticate with GitHub</td><td><span class="tag blue">Auth</span></td></tr>
+        <tr><td><code>/model</code></td><td>Switch between available AI models</td><td><span class="tag purple">Config</span></td></tr>
+        <tr><td><code>/plan</code></td><td>Enter plan mode for structured task planning</td><td><span class="tag green">Workflow</span></td></tr>
+        <tr><td><code>/fleet</code></td><td>Run multiple models in parallel</td><td><span class="tag amber">Advanced</span></td></tr>
+        <tr><td><code>/mcp</code></td><td>List and manage MCP server connections</td><td><span class="tag purple">Config</span></td></tr>
+        <tr><td><code>/experimental</code></td><td>Toggle experimental features on/off</td><td><span class="tag amber">Advanced</span></td></tr>
+        <tr><td><code>/resume</code></td><td>Switch between local and remote sessions</td><td><span class="tag green">Workflow</span></td></tr>
+        <tr><td><code>/changelog</code></td><td>View latest updates and improvements</td><td><span class="tag blue">Info</span></td></tr>
+        <tr><td><code>/plugin install</code></td><td>Install community plugins</td><td><span class="tag purple">Config</span></td></tr>
+        <tr><td><code>/delegate</code></td><td>Delegate to cloud coding agent (prefix with &amp;)</td><td><span class="tag amber">Advanced</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-family:'Syne',sans-serif;font-size:.95rem;margin:2rem 0 1rem;">Enterprise Workflow Examples</h3>
+
+    <div class="card">
+      <h3><span class="icon" style="background:rgba(0,120,212,.12);color:var(--ms-teal);">🔍</span> Codebase Onboarding</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="lang">copilot session</span></div>
+        <pre><span class="comment"># Clone the repo and start Copilot CLI</span>
+<span class="cmd">git clone</span> https://github.com/company/service-api.git
+<span class="cmd">cd</span> service-api
+<span class="cmd">copilot</span>
+
+<span class="comment"># Ask it to explain the project</span>
+<span class="var">You:</span> <span class="string">Explain the layout of this project</span>
+
+<span class="comment"># Ensure your environment is ready</span>
+<span class="var">You:</span> <span class="string">Make sure my environment is ready to build</span>
+
+<span class="comment"># Find good first issues</span>
+<span class="var">You:</span> <span class="string">Find good first issues and rank by difficulty</span></pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="icon" style="background:rgba(110,231,183,.12);color:var(--ms-green);">🚀</span> Programmatic / CI Usage</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="lang">bash</span></div>
+        <pre><span class="comment"># Single-shot prompts with auto-approval</span>
+<span class="cmd">copilot</span> <span class="flag">-p</span> <span class="string">"Run all tests and fix any failures"</span> \
+  <span class="flag">--allow-all-tools</span>
+
+<span class="comment"># Piped prompts from scripts</span>
+<span class="cmd">echo</span> <span class="string">"Generate a migration for adding user roles"</span> \
+  | <span class="cmd">copilot</span> <span class="flag">-p</span> <span class="flag">--allow-all-tools</span>
+
+<span class="comment"># Background delegation to cloud agent</span>
+<span class="var">You:</span> <span class="string">&amp; Refactor the auth module to use JWT</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 09 AWESOME COPILOT ═══ -->
+<section id="awesome">
+  <div class="container">
+    <div class="section-label"><span class="num">09</span> Awesome Copilot</div>
+    <h2 class="section-title">Awesome GitHub Copilot</h2>
+    <p class="section-desc">The community-driven repository of agents, skills, instructions, plugins, and workflows — an essential resource for customizing Copilot for your enterprise.</p>
+
+    <div class="callout success">
+      <span class="callout-icon">⭐</span>
+      <div><strong>Official Repo:</strong> <a href="https://github.com/github/awesome-copilot" target="_blank">github.com/github/awesome-copilot</a> — 600+ community contributions including 175+ agents, 208+ skills, 176+ instructions, 48+ plugins, 7 agentic workflows, and hooks. It is the default plugin marketplace for both Copilot CLI and VS Code.</div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(0,120,212,.12);color:var(--ms-teal);">🤖</span> Custom Agents</h3>
+        <p>Specialized AI personas for specific roles — security reviewer, architect, DBA, DevOps, QA specialist, accessibility expert. Each with custom tools and knowledge domains.</p>
+        <div style="margin-top:.6rem;"><span class="tag blue">175+ agents</span></div>
+      </div>
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(110,231,183,.12);color:var(--ms-green);">📚</span> Skills</h3>
+        <p>Self-contained folders with instructions and resources that agents can discover and load on demand. Portable across CLI, VS Code, and cloud agent.</p>
+        <div style="margin-top:.6rem;"><span class="tag green">208+ skills</span></div>
+      </div>
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(167,139,250,.12);color:var(--ms-purple);">📜</span> Instructions</h3>
+        <p>Project-specific coding standards and team conventions. Place in <code>.github/copilot-instructions.md</code> or use <code>*.instructions.md</code> with glob patterns.</p>
+        <div style="margin-top:.6rem;"><span class="tag purple">176+ instructions</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:.5rem;">
+      <h3><span class="icon" style="background:rgba(251,191,36,.12);color:var(--ms-amber);">🔌</span> Installing Plugins from Awesome Copilot</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="lang">copilot session</span></div>
+        <pre><span class="comment"># Install a plugin directly (marketplace is pre-registered)</span>
+<span class="cmd">copilot plugin install</span> <span class="string">&lt;plugin-name&gt;@awesome-copilot</span>
+
+<span class="comment"># If marketplace not found, register it first</span>
+<span class="cmd">copilot plugin marketplace add</span> <span class="string">github/awesome-copilot</span>
+<span class="cmd">copilot plugin install</span> <span class="string">&lt;plugin-name&gt;@awesome-copilot</span>
+
+<span class="comment"># Browse available plugins interactively</span>
+<span class="cmd">/plugin marketplace browse</span> <span class="string">awesome-copilot</span></pre>
+      </div>
+    </div>
+
+    <div class="diagram">
+      <div class="diagram-title">Copilot Customization File Structure</div>
+      <div class="code-block" style="border:none;margin:0;">
+        <pre style="color:#c9d1d9;font-size:.82rem;">
+  <span class="string">your-repo/</span>
+  └── <span class="string">.github/</span>
+      ├── <span class="cmd">copilot-instructions.md</span>     <span class="comment"># Global instructions</span>
+      ├── <span class="string">instructions/</span>
+      │   ├── <span class="cmd">react.instructions.md</span>    <span class="comment"># applyTo: "**/*.tsx"</span>
+      │   └── <span class="cmd">api.instructions.md</span>      <span class="comment"># applyTo: "src/api/**"</span>
+      ├── <span class="string">prompts/</span>
+      │   ├── <span class="cmd">security-review.prompt.md</span><span class="comment"> # /security-review</span>
+      │   └── <span class="cmd">generate-tests.prompt.md</span> <span class="comment"> # /generate-tests</span>
+      ├── <span class="string">agents/</span>
+      │   ├── <span class="cmd">architect.agent.md</span>       <span class="comment"># @architect persona</span>
+      │   └── <span class="cmd">reviewer.agent.md</span>        <span class="comment"># @reviewer persona</span>
+      └── <span class="string">skills/</span>
+          └── <span class="string">db-migration/</span>
+              └── <span class="cmd">SKILL.md</span>              <span class="comment"># Auto-loaded skill</span>
+        </pre>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Syne',sans-serif;font-size:.95rem;margin:2rem 0 1rem;">Recommended Enterprise Resources</h3>
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="font-size:.92rem;">🏗️ Architecture Planning Agent</h3>
+        <p>Holistic software architecture planner that evaluates tech stacks, designs scalability roadmaps, performs cost analysis, and generates Mermaid diagrams.</p>
+        <span class="tag blue">Agent</span> <span class="tag green">Enterprise</span>
+      </div>
+      <div class="card">
+        <h3 style="font-size:.92rem;">🔒 Security Review Prompt</h3>
+        <p>Automated PR review for SQL injection, XSS risks, auth bypasses, and exposed secrets. Run as a reusable prompt: <code>/security-review</code>.</p>
+        <span class="tag amber">Prompt</span> <span class="tag purple">Security</span>
+      </div>
+      <div class="card">
+        <h3 style="font-size:.92rem;">☁️ Azure MCP Server Plugin</h3>
+        <p>Manage Azure infrastructure, monitor applications, and deploy resources directly from Copilot. Official Microsoft plugin.</p>
+        <span class="tag blue">Plugin</span> <span class="tag green">Cloud</span>
+      </div>
+      <div class="card">
+        <h3 style="font-size:.92rem;">📊 Copilot Impact Reporter</h3>
+        <p>Transform sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics.</p>
+        <span class="tag purple">Plugin</span> <span class="tag amber">Metrics</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 10 SECURITY ═══ -->
+<section id="security">
+  <div class="container">
+    <div class="section-label"><span class="num">10</span> Security &amp; Governance</div>
+    <h2 class="section-title">Enterprise Security Considerations</h2>
+    <p class="section-desc">Critical security controls and governance practices for deploying Copilot CLI across your organization.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Enterprise Security Framework</div>
+      <div class="shield-row">
+        <div class="shield-item">
+          <div class="shield-icon">🔐</div>
+          <div class="shield-title">Data Privacy</div>
+          <div class="shield-desc">Business/Enterprise data is not used to train models. Prompts &amp; suggestions are not retained.</div>
+        </div>
+        <div class="shield-item">
+          <div class="shield-icon">📋</div>
+          <div class="shield-title">Audit Logging</div>
+          <div class="shield-desc">All policy changes and model access events recorded in enterprise audit log.</div>
+        </div>
+        <div class="shield-item">
+          <div class="shield-icon">🚫</div>
+          <div class="shield-title">Content Exclusions</div>
+          <div class="shield-desc">Use .copilotignore and repo-level exclusions for sensitive files and paths.</div>
+        </div>
+        <div class="shield-item">
+          <div class="shield-icon">🔍</div>
+          <div class="shield-title">Duplicate Detection</div>
+          <div class="shield-desc">Built-in filter prevents suggestions that closely match existing public code.</div>
+        </div>
+        <div class="shield-item">
+          <div class="shield-icon">🧱</div>
+          <div class="shield-title">Agent Firewall</div>
+          <div class="shield-desc">Cloud agent includes built-in firewall with configurable allowlists for network access.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(239,68,68,.12);color:var(--ms-red);">⚠️</span> Best Practices</h3>
+        <ul>
+          <li>Integrate secret scanning tools (e.g., GitGuardian, TruffleHog) into your pipeline</li>
+          <li>Exclude sensitive repositories from AI tool access entirely</li>
+          <li>Configure <code>.copilotignore</code> files for proprietary code paths</li>
+          <li>Require code review for all AI-generated changes</li>
+          <li>Set the CLI to interactive mode (not <code>--allow-all-tools</code>) for sensitive repos</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="icon" style="background:rgba(110,231,183,.12);color:var(--ms-green);">✅</span> Data Retention (Biz/Enterprise)</h3>
+        <ul>
+          <li><strong>Prompts &amp; Suggestions:</strong> Not retained</li>
+          <li><strong>User Engagement Data:</strong> Kept for 2 years</li>
+          <li><strong>Feedback Data:</strong> Stored as needed</li>
+          <li><strong>Cloud Agent Logs:</strong> Retained for account lifetime</li>
+          <li>Third-party model providers do not receive training data</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 11 ROLLOUT ═══ -->
+<section id="rollout">
+  <div class="container">
+    <div class="section-label"><span class="num">11</span> Rollout Strategy</div>
+    <h2 class="section-title">Recommended Rollout Timeline</h2>
+    <p class="section-desc">A phased approach for enterprise-wide Copilot CLI adoption.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <h4>Week 1–2: Infrastructure Preparation</h4>
+        <p>Configure firewall allowlists, proxy settings, and SSL certificates. Enable Copilot CLI policy at the enterprise level. Set up audit logging and review data retention policies.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Week 3: Pilot Team (5–10 Developers)</h4>
+        <p>Select early adopters from different technology stacks. Install Copilot CLI, run authentication, and validate network connectivity. Establish custom instructions in a shared repository.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Week 4–5: Feedback &amp; Customization</h4>
+        <p>Collect feedback from the pilot team. Build team-specific agents, skills, and instructions. Install useful plugins from the Awesome Copilot marketplace. Document internal best practices.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Week 6–8: Broader Rollout</h4>
+        <p>Extend access to the entire engineering organization. Deliver training sessions using this guide. Set up self-service license claiming. Monitor usage via audit logs and premium request quotas.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Ongoing: Optimization</h4>
+        <p>Track ROI metrics using the Impact Reporter plugin. Iterate on custom agents and skills. Keep up with <code>/changelog</code> for new features. Contribute back to the Awesome Copilot community.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 12 REFERENCES ═══ -->
+<section id="references">
+  <div class="container">
+    <div class="section-label"><span class="num">12</span> References</div>
+    <h2 class="section-title">References &amp; Resources</h2>
+    <p class="section-desc">Official documentation, GitHub repositories, and community resources.</p>
+
+    <h3 style="font-family:'Syne',sans-serif;font-size:.9rem;margin-bottom:1rem;color:var(--ms-teal);">Official GitHub Repositories</h3>
+    <div class="ref-grid">
+      <a class="ref-card" href="https://github.com/github/copilot-cli" target="_blank">
+        <div class="ref-icon" style="background:rgba(0,120,212,.12);color:var(--ms-teal);">📦</div>
+        <div>
+          <div class="ref-title">github/copilot-cli</div>
+          <div class="ref-url">github.com/github/copilot-cli</div>
+          <div class="ref-desc">Official Copilot CLI repository — source, releases, and documentation</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://github.com/github/awesome-copilot" target="_blank">
+        <div class="ref-icon" style="background:rgba(110,231,183,.12);color:var(--ms-green);">⭐</div>
+        <div>
+          <div class="ref-title">github/awesome-copilot</div>
+          <div class="ref-url">github.com/github/awesome-copilot</div>
+          <div class="ref-desc">Community agents, skills, instructions, plugins — the default marketplace</div>
+        </div>
+      </a>
+    </div>
+
+    <h3 style="font-family:'Syne',sans-serif;font-size:.9rem;margin:2rem 0 1rem;color:var(--ms-teal);">Official Documentation</h3>
+    <div class="ref-grid">
+      <a class="ref-card" href="https://docs.github.com/copilot/concepts/agents/about-copilot-cli" target="_blank">
+        <div class="ref-icon" style="background:rgba(167,139,250,.12);color:var(--ms-purple);">📖</div>
+        <div>
+          <div class="ref-title">About Copilot CLI</div>
+          <div class="ref-url">docs.github.com/copilot/.../about-copilot-cli</div>
+          <div class="ref-desc">Concepts, modes, and core capabilities</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-cli/set-up-copilot-cli/install-copilot-cli" target="_blank">
+        <div class="ref-icon" style="background:rgba(251,191,36,.12);color:var(--ms-amber);">⬇️</div>
+        <div>
+          <div class="ref-title">Installation Guide</div>
+          <div class="ref-url">docs.github.com/.../install-copilot-cli</div>
+          <div class="ref-desc">Installation methods for all platforms</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-cli/set-up-copilot-cli/configure-copilot-cli" target="_blank">
+        <div class="ref-icon" style="background:rgba(0,180,216,.12);color:var(--ms-teal);">⚙️</div>
+        <div>
+          <div class="ref-title">Configuration Guide</div>
+          <div class="ref-url">docs.github.com/.../configure-copilot-cli</div>
+          <div class="ref-desc">Trusted directories, tools, and path permissions</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://docs.github.com/en/copilot/how-tos/copilot-cli/administer-copilot-cli-for-your-enterprise" target="_blank">
+        <div class="ref-icon" style="background:rgba(0,120,212,.12);color:var(--ms-teal);">🏢</div>
+        <div>
+          <div class="ref-title">Enterprise Admin Guide</div>
+          <div class="ref-url">docs.github.com/.../administer-copilot-cli-for-your-enterprise</div>
+          <div class="ref-desc">Policies, model access, and troubleshooting</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://docs.github.com/en/copilot/how-tos/set-up/set-up-for-enterprise" target="_blank">
+        <div class="ref-icon" style="background:rgba(110,231,183,.12);color:var(--ms-green);">🚀</div>
+        <div>
+          <div class="ref-title">Enterprise Setup</div>
+          <div class="ref-url">docs.github.com/.../set-up-for-enterprise</div>
+          <div class="ref-desc">End-to-end enterprise Copilot setup walkthrough</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://docs.github.com/en/copilot/concepts/network-settings" target="_blank">
+        <div class="ref-icon" style="background:rgba(251,191,36,.12);color:var(--ms-amber);">🌐</div>
+        <div>
+          <div class="ref-title">Network Settings</div>
+          <div class="ref-url">docs.github.com/.../network-settings</div>
+          <div class="ref-desc">Proxy, firewall, SSL, and Kerberos configuration</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://docs.github.com/en/copilot/reference/copilot-allowlist-reference" target="_blank">
+        <div class="ref-icon" style="background:rgba(239,68,68,.12);color:var(--ms-red);">🧱</div>
+        <div>
+          <div class="ref-title">Allowlist Reference</div>
+          <div class="ref-url">docs.github.com/.../copilot-allowlist-reference</div>
+          <div class="ref-desc">Complete list of domains and ports to allowlist</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://docs.github.com/copilot/customizing-copilot/customizing-or-disabling-the-firewall-for-copilot-coding-agent" target="_blank">
+        <div class="ref-icon" style="background:rgba(167,139,250,.12);color:var(--ms-purple);">🔥</div>
+        <div>
+          <div class="ref-title">Agent Firewall Config</div>
+          <div class="ref-url">docs.github.com/.../customize-the-agent-firewall</div>
+          <div class="ref-desc">Cloud agent firewall, allowlists, and custom rules</div>
+        </div>
+      </a>
+    </div>
+
+    <h3 style="font-family:'Syne',sans-serif;font-size:.9rem;margin:2rem 0 1rem;color:var(--ms-teal);">Blog Posts &amp; Guides</h3>
+    <div class="ref-grid">
+      <a class="ref-card" href="https://github.blog/ai-and-ml/github-copilot/github-copilot-cli-how-to-get-started/" target="_blank">
+        <div class="ref-icon" style="background:rgba(0,120,212,.12);color:var(--ms-teal);">📝</div>
+        <div>
+          <div class="ref-title">Getting Started Blog Post</div>
+          <div class="ref-url">github.blog/.../github-copilot-cli-how-to-get-started</div>
+          <div class="ref-desc">Official GitHub blog — hands-on walkthrough</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://github.blog/changelog/2026-02-25-github-copilot-cli-is-now-generally-available/" target="_blank">
+        <div class="ref-icon" style="background:rgba(110,231,183,.12);color:var(--ms-green);">📣</div>
+        <div>
+          <div class="ref-title">GA Announcement</div>
+          <div class="ref-url">github.blog/changelog/...generally-available</div>
+          <div class="ref-desc">General availability changelog with feature highlights</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://awesome-copilot.github.com/" target="_blank">
+        <div class="ref-icon" style="background:rgba(251,191,36,.12);color:var(--ms-amber);">🌟</div>
+        <div>
+          <div class="ref-title">Awesome Copilot Website</div>
+          <div class="ref-url">awesome-copilot.github.com</div>
+          <div class="ref-desc">Searchable website for all community resources</div>
+        </div>
+      </a>
+      <a class="ref-card" href="https://github.com/features/copilot/cli/" target="_blank">
+        <div class="ref-icon" style="background:rgba(167,139,250,.12);color:var(--ms-purple);">🏠</div>
+        <div>
+          <div class="ref-title">Copilot CLI Product Page</div>
+          <div class="ref-url">github.com/features/copilot/cli</div>
+          <div class="ref-desc">Feature overview and plan comparison</div>
+        </div>
+      </a>
+    </div>
+
+    <h3 style="font-family:'Syne',sans-serif;font-size:.9rem;margin:2rem 0 1rem;color:var(--ms-teal);">Community Repositories</h3>
+    <div class="ref-grid">
+      <a class="ref-card" href="https://github.com/Code-and-Sorts/awesome-copilot-agents" target="_blank">
+        <div class="ref-icon" style="background:rgba(0,180,216,.12);color:var(--ms-teal);">✨</div>
+        <div>
+          <div class="ref-title">Code-and-Sorts/awesome-copilot-agents</div>
+          <div class="ref-url">github.com/Code-and-Sorts/awesome-copilot-agents</div>
+          <div class="ref-desc">Curated list of instructions, prompts, skills, MCPs, and agent markdown files</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Built with the Microsoft AI ecosystem &middot; <a href="https://github.com/Bcrao" target="_blank">github.com/Bcrao</a> &middot; <a href="https://docs.github.com/copilot" target="_blank">GitHub Copilot Docs</a></p>
+  <p style="margin-top:8px;">This guide is a training resource. Always refer to <a href="https://docs.github.com/copilot" target="_blank">official GitHub documentation</a> for the most current information.</p>
+</footer>
+
+</body>
+</html>
