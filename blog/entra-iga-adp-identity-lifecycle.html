@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR-Driven Identity Lifecycle — Entra IGA via Aquera &amp; SailPoint | bcrao</title>
+<meta name="description" content="How ADP workforce events automatically trigger Joiner / Mover / Leaver workflows in Microsoft Entra Identity Governance via Aquera and SailPoint connectors.">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── SHARED VARS (blog + demo compatible) ── */
+:root {
+  --bg: #06090f;
+  --surface: #0d1117;
+  --surface-2: #151b27;
+  --surface-3: #1c2435;
+  --border: #252d3f;
+  --border-hi: #3a4560;
+  --text: #e4e9f2;
+  --text-dim: #7b879e;
+  --text-micro: #545f75;
+  --aquera: #00c9a7;
+  --aquera-dim: rgba(0,201,167,0.10);
+  --aquera-glow: rgba(0,201,167,0.25);
+  --sailpoint: #f97316;
+  --sailpoint-dim: rgba(249,115,22,0.10);
+  --sailpoint-glow: rgba(249,115,22,0.25);
+  --entra: #3b82f6;
+  --entra-dim: rgba(59,130,246,0.10);
+  --entra-glow: rgba(59,130,246,0.25);
+  --adp: #e11d48;
+  --adp-dim: rgba(225,29,72,0.10);
+  --green: #22c55e;
+  --green-dim: rgba(34,197,94,0.10);
+  --yellow: #eab308;
+  --yellow-dim: rgba(234,179,8,0.10);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.10);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.10);
+  --pink: #ec4899;
+  --pink-dim: rgba(236,72,153,0.10);
+  --sans: 'Outfit', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --radius: 10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.75;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── NAV ── */
+nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  background: linear-gradient(100deg, var(--entra), var(--aquera));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+}
+.nav-links { display: flex; gap: 20px; align-items: center; list-style: none; }
+.nav-links a { color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-back {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 12px;
+  color: var(--text-dim); text-decoration: none;
+  padding: 5px 13px; border: 1px solid var(--border); border-radius: 7px;
+  transition: border-color .2s, color .2s;
+}
+.nav-back:hover { border-color: var(--aquera); color: var(--aquera); }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  min-height: 84vh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 60px 40px 80px;
+  background: linear-gradient(160deg, #050c15 0%, #08152a 35%, #070e1c 65%, #04080f 100%);
+  overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background:
+    radial-gradient(ellipse 700px 500px at 12% 45%, rgba(0,201,167,0.11), transparent),
+    radial-gradient(ellipse 650px 650px at 88% 55%, rgba(59,130,246,0.09), transparent),
+    radial-gradient(ellipse 450px 350px at 55% 88%, rgba(249,115,22,0.04), transparent);
+}
+.hero-ascii {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -55%);
+  font-family: var(--mono); font-size: 10.5px; line-height: 1.4;
+  color: rgba(0,201,167,0.055); white-space: pre;
+  z-index: 0; user-select: none; pointer-events: none;
+}
+.hero-content { position: relative; z-index: 2; max-width: 920px; }
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--aquera);
+  margin-bottom: 22px; display: flex; align-items: center; gap: 12px;
+}
+.eyebrow-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--aquera); box-shadow: 0 0 8px var(--aquera);
+  animation: epulse 2.6s ease-in-out infinite;
+}
+@keyframes epulse { 0%,100%{opacity:1;box-shadow:0 0 6px var(--aquera)} 50%{opacity:.6;box-shadow:0 0 14px var(--aquera-glow)} }
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(34px, 5.5vw, 68px);
+  font-weight: 800; line-height: 1.06;
+  color: #fff; margin-bottom: 22px; letter-spacing: -1.5px;
+}
+.hl-a { color: var(--aquera); }
+.hl-e { color: var(--entra); }
+.hl-s { color: var(--sailpoint); }
+.hero-sub {
+  font-size: 18px; font-weight: 300;
+  color: rgba(228,233,242,.60); max-width: 660px;
+  line-height: 1.7; margin-bottom: 34px;
+}
+.hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
+.htag {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 100px;
+}
+.htag-e { background: var(--entra-dim); color: var(--entra); border: 1px solid rgba(59,130,246,.25); }
+.htag-a { background: var(--aquera-dim); color: var(--aquera); border: 1px solid rgba(0,201,167,.25); }
+.htag-s { background: var(--sailpoint-dim); color: var(--sailpoint); border: 1px solid rgba(249,115,22,.25); }
+.htag-adp { background: var(--adp-dim); color: var(--adp); border: 1px solid rgba(225,29,72,.25); }
+.htag-iga { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,.25); }
+.hero-meta {
+  display: flex; gap: 28px; align-items: center;
+  font-family: var(--mono); font-size: 12px;
+  color: rgba(255,255,255,.38); letter-spacing: .5px;
+}
+.hero-meta span { display: flex; align-items: center; gap: 7px; }
+.hero-meta .sep { width: 1px; height: 14px; background: var(--border); }
+
+/* ── ARTICLE ── */
+.article-wrap {
+  max-width: 760px; margin: 0 auto; padding: 72px 24px 40px;
+}
+.article-wrap p {
+  margin-bottom: 1.5em; font-weight: 400; font-size: 17px;
+  color: rgba(228,233,242,.80); line-height: 1.85;
+}
+.article-wrap p:first-of-type::first-letter {
+  font-family: 'Syne', sans-serif; font-size: 3.8em;
+  float: left; line-height: 0.80; margin: 10px 14px 0 0;
+  color: var(--aquera); font-weight: 800;
+}
+.sec-num {
+  font-family: var(--mono); font-size: 11px; color: var(--aquera);
+  letter-spacing: 3px; text-transform: uppercase;
+  display: block; margin-bottom: 8px; margin-top: 64px;
+}
+.article-wrap h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(20px, 2.8vw, 28px); font-weight: 700;
+  line-height: 1.28; margin-bottom: 20px; color: var(--text); letter-spacing: -.4px;
+}
+.article-wrap h3 {
+  font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700;
+  margin-top: 36px; margin-bottom: 12px; color: var(--text);
+}
+.ornament { text-align: center; color: var(--border-hi); margin: 52px 0; letter-spacing: 18px; font-size: 13px; }
+
+/* PULLQUOTE */
+.pullquote {
+  margin: 44px 0; padding: 28px 32px;
+  border-left: 3px solid var(--aquera);
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0;
+}
+.pullquote p {
+  font-family: 'Syne', sans-serif !important; font-size: 18px !important;
+  font-weight: 600 !important; line-height: 1.55 !important;
+  color: var(--text) !important; margin-bottom: 0 !important; font-style: italic;
+}
+.pullquote p::first-letter { all: unset !important; }
+.pullquote .attr {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
+  color: var(--text-dim); margin-top: 10px; text-transform: uppercase;
+}
+
+/* CALLOUT */
+.callout { margin: 36px 0; padding: 24px 28px; border-radius: var(--radius); }
+.ca-entra { background: var(--entra-dim); border: 1px solid rgba(59,130,246,.18); }
+.ca-aquera { background: var(--aquera-dim); border: 1px solid rgba(0,201,167,.18); }
+.ca-sp { background: var(--sailpoint-dim); border: 1px solid rgba(249,115,22,.18); }
+.ca-warn { background: var(--yellow-dim); border: 1px solid rgba(234,179,8,.18); }
+.callout-ttl { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; }
+.ca-entra .callout-ttl { color: var(--entra); }
+.ca-aquera .callout-ttl { color: var(--aquera); }
+.ca-sp .callout-ttl { color: var(--sailpoint); }
+.ca-warn .callout-ttl { color: var(--yellow); }
+.callout p { font-size: 14px !important; margin-bottom: .5em !important; color: var(--text-dim) !important; line-height: 1.65 !important; }
+.callout p::first-letter { all: unset !important; }
+.callout p:last-child { margin-bottom: 0 !important; }
+
+/* STATS STRIP */
+.stats-strip {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 1px; background: var(--border); margin: 52px 0;
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+}
+.stat-item { background: var(--surface); padding: 26px 16px; text-align: center; }
+.stat-num { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; line-height: 1; }
+.c-a { color: var(--aquera); }
+.c-e { color: var(--entra); }
+.c-s { color: var(--sailpoint); }
+.c-adp { color: var(--adp); }
+.c-r { color: var(--red); }
+.c-g { color: var(--green); }
+.stat-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-micro); margin-top: 7px; }
+
+/* COMPARE TABLE */
+.compare-table { margin: 36px 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.ct-row { display: grid; grid-template-columns: 1.6fr 1fr 1fr; border-bottom: 1px solid var(--border); }
+.ct-row:last-child { border-bottom: none; }
+.ct-row.ct-head { background: var(--surface-2); }
+.ct-cell { padding: 11px 15px; font-size: 13px; border-right: 1px solid var(--border); line-height: 1.55; color: var(--text-dim); }
+.ct-cell:last-child { border-right: none; }
+.ct-row.ct-head .ct-cell { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-micro); font-weight: 600; }
+.ct-cell.ta { color: var(--aquera); font-weight: 500; }
+.ct-cell.ts { color: var(--sailpoint); font-weight: 500; }
+
+/* LIFECYCLE VISUAL */
+.lifecycle-flow { display: flex; margin: 36px 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.lf-phase { flex: 1; padding: 18px 14px; text-align: center; }
+.lf-phase.j { background: rgba(34,197,94,.07); border-right: 1px solid var(--border); }
+.lf-phase.m { background: rgba(59,130,246,.07); border-right: 1px solid var(--border); }
+.lf-phase.l { background: rgba(239,68,68,.07); }
+.lf-ico { font-size: 20px; margin-bottom: 7px; }
+.lf-ttl { font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.lf-phase.j .lf-ttl { color: var(--green); }
+.lf-phase.m .lf-ttl { color: var(--entra); }
+.lf-phase.l .lf-ttl { color: var(--red); }
+.lf-dsc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+/* ── DEMO SECTION WRAPPER ── */
+.demo-outer {
+  margin: 64px 0 0;
+  border: 1px solid var(--border-hi);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(0,201,167,0.06);
+}
+.demo-label {
+  padding: 14px 22px; background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.demo-logo-mark {
+  width: 30px; height: 30px; border-radius: 7px;
+  background: linear-gradient(135deg, var(--entra), var(--aquera));
+  display: grid; place-items: center;
+  font-family: var(--mono); font-weight: 700; font-size: 11px; color: var(--bg); flex-shrink: 0;
+}
+.demo-lbl-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; }
+.demo-lbl-sub { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+.demo-live-pill {
+  margin-left: auto; font-family: var(--mono); font-size: 10px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
+  background: var(--aquera-dim); color: var(--aquera);
+  border: 1px solid rgba(0,201,167,.2); text-transform: uppercase; letter-spacing: .5px;
+}
+
+/* ── DEMO INNER STYLES (from original demo, body/body::before removed) ── */
+.demo-shell { position: relative; }
+.demo-shell::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 800px 600px at 15% 10%, rgba(0,201,167,0.04), transparent),
+    radial-gradient(ellipse 600px 800px at 85% 90%, rgba(59,130,246,0.03), transparent);
+}
+.demo-shell .app { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 20px 24px; }
+/* Header */
+.hdr { display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:1px solid var(--border); margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+.hdr-left { display:flex; align-items:center; gap:14px; }
+.hdr-logo { width:38px; height:38px; border-radius:9px; background:linear-gradient(135deg,var(--entra),var(--aquera)); display:grid; place-items:center; font-family:var(--mono); font-weight:700; font-size:14px; color:var(--bg); }
+.hdr h1 { font-size:18px; font-weight:700; letter-spacing:-0.4px; font-family:var(--sans); }
+.hdr h1 em { font-style:normal; color:var(--aquera); }
+.hdr-sub { font:500 11px var(--mono); color:var(--text-dim); margin-top:1px; }
+.hdr-right { display:flex; gap:10px; align-items:center; }
+.badge { font:600 10px var(--mono); padding:4px 12px; border-radius:20px; letter-spacing:0.5px; text-transform:uppercase; }
+.badge-env { background:var(--aquera-dim); color:var(--aquera); border:1px solid rgba(0,201,167,0.15); }
+.badge-tenant { background:var(--entra-dim); color:var(--entra); border:1px solid rgba(59,130,246,0.15); }
+/* Connector Selector */
+.connector-bar { display:flex; gap:8px; margin-bottom:16px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:5px; }
+.conn-btn { flex:1; padding:12px 16px; border-radius:8px; border:none; cursor:pointer; font:600 13px var(--sans); color:var(--text-dim); background:transparent; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.25s; }
+.conn-btn:hover { color:var(--text); background:var(--surface-2); }
+.conn-btn.active-aquera { background:var(--aquera-dim); color:var(--aquera); box-shadow:0 0 16px rgba(0,201,167,0.08); border:1px solid rgba(0,201,167,0.2); }
+.conn-btn.active-sailpoint { background:var(--sailpoint-dim); color:var(--sailpoint); box-shadow:0 0 16px rgba(249,115,22,0.08); border:1px solid rgba(249,115,22,0.2); }
+.conn-dot { width:8px; height:8px; border-radius:50%; }
+.conn-dot.aq { background:var(--aquera); }
+.conn-dot.sp { background:var(--sailpoint); }
+/* Scenario Tabs */
+.scenario-bar { display:flex; gap:4px; margin-bottom:18px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:4px; }
+.sc-tab { flex:1; padding:10px 14px; border-radius:7px; border:none; cursor:pointer; font:500 12px var(--sans); color:var(--text-dim); background:transparent; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s; }
+.sc-tab:hover { color:var(--text); background:var(--surface-2); }
+.sc-tab.active { background:var(--surface-3); color:var(--text); box-shadow:0 1px 6px rgba(0,0,0,0.3); }
+.sc-icon { font-size:14px; }
+/* Architecture Banner */
+.arch-banner { display:flex; align-items:center; gap:0; margin-bottom:18px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; position:relative; }
+.arch-node { flex:1; padding:14px 16px; text-align:center; position:relative; z-index:1; }
+.arch-node-label { font:600 11px var(--mono); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:3px; }
+.arch-node-desc { font:400 10px var(--sans); color:var(--text-dim); }
+.arch-arrow { width:36px; flex-shrink:0; display:grid; place-items:center; font:600 14px var(--mono); color:var(--text-micro); position:relative; z-index:1; }
+.arch-node.n-adp .arch-node-label { color:var(--adp); }
+.arch-node.n-conn .arch-node-label { color:var(--aquera); }
+.arch-node.n-entra .arch-node-label { color:var(--entra); }
+.arch-node.n-apps .arch-node-label { color:var(--purple); }
+/* Main Grid */
+.main-grid { display:grid; grid-template-columns:280px 1fr 280px; gap:16px; }
+/* Panel */
+.panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.panel-hdr { padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface-2); display:flex; align-items:center; gap:10px; }
+.p-icon { width:26px; height:26px; border-radius:6px; display:grid; place-items:center; font-size:12px; flex-shrink:0; }
+.p-icon.ic-adp { background:var(--adp-dim); color:var(--adp); }
+.p-icon.ic-conn { background:var(--aquera-dim); color:var(--aquera); }
+.p-icon.ic-apps { background:var(--purple-dim); color:var(--purple); }
+.p-title { font:600 12px var(--sans); }
+.p-sub { font:500 10px var(--mono); color:var(--text-dim); }
+.panel-body { padding:14px 16px; }
+/* Section label */
+.sec-label { font:600 9px var(--mono); text-transform:uppercase; letter-spacing:0.8px; color:var(--text-micro); margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+/* Employee Card */
+.emp-card { background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:14px; }
+.emp-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.emp-name { font:700 14px var(--sans); }
+.emp-badge { font:600 9px var(--mono); padding:3px 10px; border-radius:14px; text-transform:uppercase; letter-spacing:0.4px; }
+.emp-badge.hire { background:var(--green-dim); color:var(--green); }
+.emp-badge.move { background:var(--entra-dim); color:var(--entra); }
+.emp-badge.leave { background:var(--red-dim); color:var(--red); }
+.emp-fields { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+.emp-fl { font:500 8px var(--mono); color:var(--text-micro); text-transform:uppercase; letter-spacing:0.5px; }
+.emp-fv { font:500 12px var(--sans); color:var(--text); margin-top:1px; }
+/* Flow Steps */
+.flow-step { display:flex; gap:10px; margin-bottom:2px; opacity:0; transform:translateY(6px); transition:all 0.4s cubic-bezier(0.16,1,0.3,1); }
+.flow-step.vis { opacity:1; transform:translateY(0); }
+.flow-line { width:2px; min-height:14px; margin-left:13px; background:var(--border); transition:background 0.4s; }
+.flow-line.lit { background:var(--aquera); box-shadow:0 0 6px var(--aquera-glow); }
+.flow-line.lit-sp { background:var(--sailpoint); box-shadow:0 0 6px var(--sailpoint-glow); }
+.step-dot { width:28px; height:28px; border-radius:50%; flex-shrink:0; border:2px solid var(--border); background:var(--surface); display:grid; place-items:center; font-size:12px; transition:all 0.4s; position:relative; z-index:1; }
+.step-dot.done { border-color:var(--aquera); background:var(--aquera-dim); }
+.step-dot.done-sp { border-color:var(--sailpoint); background:var(--sailpoint-dim); }
+.step-dot.run { border-color:var(--aquera); background:var(--aquera); color:var(--bg); animation:pls 1.4s ease infinite; }
+.step-dot.run-sp { border-color:var(--sailpoint); background:var(--sailpoint); color:var(--bg); animation:pls-sp 1.4s ease infinite; }
+@keyframes pls { 0%,100%{box-shadow:0 0 0 0 var(--aquera-glow)} 50%{box-shadow:0 0 0 7px transparent} }
+@keyframes pls-sp { 0%,100%{box-shadow:0 0 0 0 var(--sailpoint-glow)} 50%{box-shadow:0 0 0 7px transparent} }
+.step-dot.wait { border-color:var(--border); }
+.step-body { flex:1; padding-top:2px; }
+.step-t { font:600 12px var(--sans); margin-bottom:1px; }
+.step-d { font:400 11px var(--sans); color:var(--text-dim); line-height:1.45; }
+.step-m { font:500 10px var(--mono); margin-top:4px; padding:3px 8px; background:var(--surface-2); border-radius:4px; color:var(--text-dim); display:inline-block; }
+.step-connector-badge { display:inline-block; font:600 9px var(--mono); padding:2px 7px; border-radius:10px; margin-left:6px; vertical-align:middle; }
+.step-connector-badge.aq { background:var(--aquera-dim); color:var(--aquera); }
+.step-connector-badge.sp { background:var(--sailpoint-dim); color:var(--sailpoint); }
+/* App Cards */
+.app-card { display:flex; align-items:center; gap:10px; padding:9px 11px; background:var(--surface-2); border:1px solid var(--border); border-radius:7px; margin-bottom:6px; opacity:0; transform:translateX(10px); transition:all 0.45s cubic-bezier(0.16,1,0.3,1); }
+.app-card.vis { opacity:1; transform:translateX(0); }
+.app-logo { width:32px; height:32px; border-radius:7px; display:grid; place-items:center; font-size:14px; flex-shrink:0; }
+.app-info { flex:1; min-width:0; }
+.app-nm { font:600 12px var(--sans); }
+.app-rl { font:400 10px var(--sans); color:var(--text-dim); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.app-st { font:600 8px var(--mono); padding:3px 8px; border-radius:10px; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap; }
+.app-st.ok { background:var(--green-dim); color:var(--green); }
+.app-st.go { background:var(--yellow-dim); color:var(--yellow); animation:bk 1s infinite; }
+.app-st.rm { background:var(--red-dim); color:var(--red); }
+.app-st.mod { background:var(--entra-dim); color:var(--entra); }
+.app-st.pd { background:var(--surface-3); color:var(--text-micro); }
+@keyframes bk { 50%{opacity:0.5} }
+/* Controls */
+.ctrl-bar { margin-top:16px; display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); flex-wrap:wrap; }
+.btn { padding:9px 20px; border-radius:7px; border:none; font:600 12px var(--sans); cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:7px; }
+.btn-go { background:var(--aquera); color:var(--bg); }
+.btn-go.sp-mode { background:var(--sailpoint); }
+.btn-go:hover { transform:translateY(-1px); }
+.btn-go:disabled { opacity:0.35; cursor:default; transform:none; }
+.btn-rst { background:transparent; color:var(--text-dim); border:1px solid var(--border); }
+.btn-rst:hover { border-color:var(--text-dim); color:var(--text); }
+.prog { margin-left:auto; font:500 11px var(--mono); color:var(--text-dim); }
+/* Audit */
+.audit { margin-top:16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); }
+.audit-hdr { padding:10px 16px; border-bottom:1px solid var(--border); background:var(--surface-2); font:600 12px var(--sans); display:flex; align-items:center; gap:8px; }
+.audit-body { padding:6px 10px; max-height:220px; overflow-y:auto; }
+.audit-e { font:400 10px var(--mono); padding:4px 8px; border-radius:4px; margin-bottom:1px; line-height:1.55; color:var(--text-dim); opacity:0; transform:translateY(3px); transition:all 0.3s; }
+.audit-e.vis { opacity:1; transform:translateY(0); }
+.audit-e .ts { color:var(--text-micro); }
+.audit-e .act { color:var(--aquera); }
+.audit-e .act-sp { color:var(--sailpoint); }
+.audit-e .tgt { color:var(--entra); }
+.audit-e .wrn { color:var(--yellow); }
+.audit-e .err { color:var(--red); }
+/* Demo responsive */
+@media(max-width:1100px) { .main-grid { grid-template-columns:1fr; } }
+@media(max-width:600px) {
+  .demo-shell .app{padding:10px;} .hdr{flex-direction:column;align-items:flex-start;}
+  .connector-bar,.scenario-bar{flex-direction:column;} .arch-banner{flex-direction:column;}
+  .arch-arrow{transform:rotate(90deg);width:auto;padding:4px;}
+}
+
+/* ── ARTICLE FOOTER ── */
+.article-footer {
+  max-width: 760px; margin: 48px auto 0; padding: 36px 24px 80px;
+  border-top: 1px solid var(--border);
+}
+.author-block { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.author-av {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--entra), var(--aquera));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.author-name { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.author-bio { font-size: 13px; color: var(--text-dim); font-weight: 300; }
+.article-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.atag {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  padding: 4px 12px; border-radius: 6px;
+  background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
+}
+
+/* ── SITE FOOTER ── */
+.site-footer {
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 32px 24px; text-align: center;
+}
+.site-footer p { font-size: 13px; color: var(--text-micro); }
+.site-footer a { color: var(--aquera); text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }
+
+/* ── GLOBAL RESPONSIVE ── */
+@media (max-width: 600px) {
+  .hero { padding: 40px 20px 60px; }
+  .hero-ascii { display: none; }
+  .article-wrap { padding: 48px 18px 40px; }
+  .article-footer { padding: 30px 18px 60px; }
+  .stats-strip { grid-template-columns: 1fr 1fr; }
+  .ct-row { grid-template-columns: 1fr; }
+  .ct-row.ct-head .ct-cell:not(:first-child) { display: none; }
+  .lifecycle-flow { flex-direction: column; }
+  .lf-phase.j, .lf-phase.m { border-right: none; border-bottom: 1px solid var(--border); }
+  .nav-links { display: none; }
+}
+::-webkit-scrollbar{width:4px;height:4px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="https://bcrao.github.io/">bcrao.dev</a>
+    <ul class="nav-links">
+      <li><a href="https://bcrao.github.io/">Blog</a></li>
+      <li><a href="https://github.com/Bcrao" target="_blank">GitHub</a></li>
+      <li><a href="https://www.linkedin.com/in/bcrao" target="_blank">LinkedIn</a></li>
+    </ul>
+    <a class="nav-back" href="https://bcrao.github.io/">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      All Articles
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-ascii">
+ADP Workforce Now ─────────────────────────── worker.hire()
+     │                                              │
+     │  employee_id: BLP-2026-0847                  │
+     │  event_type:  hire                           │
+     │  dept:        Product Engineering            │
+     │  start_date:  2026-05-05                     │
+     ↓                                              ↓
+ ┌─────────────────┐    SCIM 2.0     ┌─────────────────────┐
+ │  Aquera Sync    │ ──────────────▶ │  Microsoft Entra ID  │
+ │  Bridge / ISC   │  /bulkUpload    │  Identity Governance │
+ └─────────────────┘                 └─────────────────────┘
+                                              │
+                          ┌───────────────────┼──────────────────┐
+                          ↓                   ↓                  ↓
+                       Figma              GitHub             Salesforce
+                     (editor)           (member)           (std user)
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-dot"></span>
+      Identity Governance &amp; Administration
+    </div>
+    <h1>HR-Driven<br>Identity <span class="hl-a">Lifecycle</span><br>via <span class="hl-e">Entra IGA</span></h1>
+    <p class="hero-sub">How ADP workforce events automatically trigger Joiner / Mover / Leaver workflows in Microsoft Entra Identity Governance — with Aquera and SailPoint as the connector layer.</p>
+    <div class="hero-tags">
+      <span class="htag htag-e">Microsoft Entra</span>
+      <span class="htag htag-iga">IGA</span>
+      <span class="htag htag-adp">ADP Workforce Now</span>
+      <span class="htag htag-a">Aquera</span>
+      <span class="htag htag-s">SailPoint</span>
+    </div>
+    <div class="hero-meta">
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        April 2026
+      </span>
+      <span class="sep"></span>
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        12 min read
+      </span>
+      <span class="sep"></span>
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Identity &amp; Security
+      </span>
+    </div>
+  </div>
+</header>
+
+<!-- ARTICLE BODY -->
+<div class="article-wrap">
+
+  <p>The notification arrives before the new hire does. Six weeks before Marina Costa Silva's first day as a Senior Platform Engineer, an HR administrator updates her start date in ADP Workforce Now. In a well-governed organization, that single record update quietly sets off a chain reaction across a dozen systems: a Microsoft Entra account is created, security groups are assigned, a Figma workspace seat is provisioned, a GitHub organization invite is queued, and a Temporary Access Pass for passwordless first login is dispatched. Marina walks in on Monday. She can work.</p>
+
+  <p>But in most organizations, that chain reaction does not happen automatically. It requires a ticket. It requires someone in IT to notice. It requires coordination between HR, IT, Security, and half a dozen application owners. By the time it is all done, Marina has waited three days for her laptop to unlock and a week for her GitHub access. Meanwhile, Pedro Almeida, who resigned last Tuesday, still has an active Salesforce login.</p>
+
+  <p>The gap between how identity should work and how it actually works is one of the most consequential security blind spots in the modern enterprise. This is the problem that Microsoft Entra Identity Governance — paired with HR connectors like Aquera and SailPoint — is designed to close, permanently.</p>
+
+  <div class="ornament">◆ ◆ ◆</div>
+
+  <span class="sec-num">Section 01</span>
+  <h2>The Identity Lifecycle Problem at Scale</h2>
+
+  <p>Identity governance is, at its core, a matching problem. On one side, you have people — employees who join, change roles, transfer departments, take parental leave, and eventually leave. On the other side, you have resources: hundreds of SaaS applications, cloud environments, file shares, and security groups, each with its own access model. The job of an Identity Governance and Administration (IGA) system is to ensure that every person has exactly the access they need — no more, no less — at every stage of their lifecycle.</p>
+
+  <p>In practice, this is extraordinarily hard to do manually. The average enterprise employee today has active accounts in more than 35 SaaS applications. A mid-size company of 3,000 employees might manage over 100,000 individual application accounts across Salesforce, GitHub, Slack, Jira, Figma, AWS, and dozens more. When someone changes departments, their old access should be revoked and new access provisioned — often across 15 or more systems simultaneously. When someone is terminated, every single account must be disabled within hours, not days.</p>
+
+  <div class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-num c-adp">35+</div>
+      <div class="stat-lbl">SaaS apps per enterprise employee</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num c-r">58%</div>
+      <div class="stat-lbl">Orgs take &gt;24h to fully deprovision</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num c-a">3×</div>
+      <div class="stat-lbl">More breaches from orphaned accounts</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num c-e">72h</div>
+      <div class="stat-lbl">Avg. time to provision a new hire manually</div>
+    </div>
+  </div>
+
+  <p>The statistics are sobering. According to identity security research, 58% of organizations take more than 24 hours to fully deprovision a terminated employee. A quarter take more than a week. In that window, former employees retain access to sensitive systems they should never touch again. Insider threats, credential abuse, and accidental data access all exploit exactly this gap — and it is a gap that grows with every new SaaS tool added to the portfolio.</p>
+
+  <div class="callout ca-warn">
+    <div class="callout-ttl">⚠ The Orphaned Account Problem</div>
+    <p>Industry estimates suggest that 30–50% of SaaS application accounts belong to people who no longer need them — either former employees, contractors, or users who changed roles. Each unused account is a dormant attack vector. A compromised credential for a forgotten Figma editor account can become the entry point for a data exfiltration campaign.</p>
+  </div>
+
+  <span class="sec-num">Section 02</span>
+  <h2>ADP Workforce Now: The System of Record for Identity</h2>
+
+  <p>The solution to the provisioning problem starts with recognizing that HR already has the data. ADP Workforce Now, one of the largest HR management platforms in the world, contains the definitive record of who works at your company: what their role is, which department they belong to, who their manager is, what cost center they're in, and critically — when they start, when they move, and when they leave. Every identity event in the enterprise begins as an HR event.</p>
+
+  <p>A hire is a new worker record in ADP. A department transfer is an attribute change on an existing record. A resignation is a status update to <code style="font-family:var(--mono);font-size:13px;background:var(--surface-2);padding:2px 6px;border-radius:4px;color:var(--aquera)">workerStatus = Terminated</code>. If your identity infrastructure can listen to these events in real time and react automatically, you have the foundation of a functioning Joiner/Mover/Leaver (JML) lifecycle — the three scenarios that govern virtually all identity activity in an organization.</p>
+
+  <div class="lifecycle-flow">
+    <div class="lf-phase j">
+      <div class="lf-ico">🟢</div>
+      <div class="lf-ttl">Joiner</div>
+      <div class="lf-dsc">New hire detected → create identity, provision access packages, send welcome + TAP</div>
+    </div>
+    <div class="lf-phase m">
+      <div class="lf-ico">🔄</div>
+      <div class="lf-ttl">Mover</div>
+      <div class="lf-dsc">Dept/role change → swap access packages, delta-provision new apps, revoke old entitlements</div>
+    </div>
+    <div class="lf-phase l">
+      <div class="lf-ico">🔴</div>
+      <div class="lf-ttl">Leaver</div>
+      <div class="lf-dsc">Termination event → block sign-in, revoke all tokens, deprovision all apps within hours</div>
+    </div>
+  </div>
+
+  <p>The challenge is that ADP and Microsoft Entra speak different languages and operate on different clocks. ADP exposes a REST API and SCIM endpoint. Entra consumes SCIM 2.0 for inbound provisioning. Bridging these two systems requires a connector layer that understands both, handles attribute mapping, manages error recovery, and provides a complete audit trail. This is precisely where Aquera and SailPoint compete for enterprise attention.</p>
+
+  <div class="pullquote">
+    <p>"Governance is not a feature you bolt on. It is the architectural decision to treat your HR system as the authoritative source of identity — and to automate every consequence of that truth."</p>
+    <div class="attr">— Identity Governance Design Principle</div>
+  </div>
+
+  <span class="sec-num">Section 03</span>
+  <h2>The Connector Layer: Aquera vs SailPoint</h2>
+
+  <p>Two enterprise-grade approaches to bridging ADP Workforce Now with Microsoft Entra ID have emerged as the dominant choices. Aquera's HR Sync Bridge targets organizations that want a fast, no-code path to automated provisioning. SailPoint Identity Security Cloud offers a full IGA platform for organizations that need governance, certification, and role management on top of provisioning. Both ultimately deliver SCIM payloads to Entra — but the journey and the capabilities differ significantly.</p>
+
+  <h3>Aquera: No-Code HR Inbound Provisioning</h3>
+
+  <p>Aquera operates as a purpose-built connector service between HR systems and identity platforms. It polls the ADP API on a configurable schedule, detects worker events (hire, job change, termination), applies no-code attribute mapping rules, and pushes SCIM 2.0 bulk upload payloads to Entra's <code style="font-family:var(--mono);font-size:13px;background:var(--surface-2);padding:2px 6px;border-radius:4px;color:var(--aquera)">/bulkUpload</code> endpoint. The entire configuration — field mappings, department-to-access-profile rules, sync frequency — lives in a visual UI. No code, no middleware to maintain, no SCIM server to host.</p>
+
+  <div class="callout ca-aquera">
+    <div class="callout-ttl">Aquera HR Sync Bridge</div>
+    <p>Best for: organizations already invested in Microsoft Entra that want automated JML within days, not months. Aquera handles the connector complexity so IT can focus on access package design in Entra.</p>
+    <p>Key strengths: rapid deployment, native SCIM /bulkUpload integration, no-code attribute mapping, supports ADP + 50+ other HR sources.</p>
+  </div>
+
+  <h3>SailPoint Identity Security Cloud: Full IGA Platform</h3>
+
+  <p>SailPoint takes a broader scope. Rather than acting as a connector, SailPoint ISC is itself an IGA platform — it ingests HR data from ADP as a source, runs identity lifecycle policies, manages role engineering, triggers access certifications, and then provisions to Entra (and dozens of other targets) via MS Graph and SCIM. The governance layer — campaign-based certifications, separation of duties, role analytics — is where SailPoint earns its enterprise positioning.</p>
+
+  <div class="callout ca-sp">
+    <div class="callout-ttl">SailPoint Identity Security Cloud</div>
+    <p>Best for: enterprises requiring access certification campaigns, SoD policy enforcement, role mining, and governance reporting — particularly those already running SailPoint on-prem (IIQ) and migrating to cloud.</p>
+    <p>Key strengths: full IGA suite, certification campaigns, role management, deep integration with HR sources, Entra provisioning via MS Graph + SCIM.</p>
+  </div>
+
+  <div class="compare-table">
+    <div class="ct-row ct-head">
+      <div class="ct-cell">Capability</div>
+      <div class="ct-cell">Aquera Sync Bridge</div>
+      <div class="ct-cell">SailPoint ISC</div>
+    </div>
+    <div class="ct-row">
+      <div class="ct-cell">Deployment complexity</div>
+      <div class="ct-cell ta">Days (SaaS, no-code)</div>
+      <div class="ct-cell ts">Weeks–months (platform config)</div>
+    </div>
+    <div class="ct-row">
+      <div class="ct-cell">ADP integration method</div>
+      <div class="ct-cell ta">REST API polling + SCIM</div>
+      <div class="ct-cell ts">HR Source connector + aggregation</div>
+    </div>
+    <div class="ct-row">
+      <div class="ct-cell">Entra push method</div>
+      <div class="ct-cell ta">SCIM /bulkUpload endpoint</div>
+      <div class="ct-cell ts">MS Graph API + SCIM provisioning</div>
+    </div>
+    <div class="ct-row">
+      <div class="ct-cell">Access certifications</div>
+      <div class="ct-cell" style="color:var(--text-micro)">Handled by Entra Reviews</div>
+      <div class="ct-cell ts">Native SailPoint campaigns</div>
+    </div>
+    <div class="ct-row">
+      <div class="ct-cell">Role / SoD management</div>
+      <div class="ct-cell" style="color:var(--text-micro)">Entra access packages</div>
+      <div class="ct-cell ts">SailPoint Role & SoD engine</div>
+    </div>
+    <div class="ct-row">
+      <div class="ct-cell">Best fit</div>
+      <div class="ct-cell ta">Entra-first, fast time-to-value</div>
+      <div class="ct-cell ts">Full IGA governance platform</div>
+    </div>
+  </div>
+
+  <span class="sec-num">Section 04</span>
+  <h2>Microsoft Entra IGA: Where Governance Happens</h2>
+
+  <p>Once the connector layer delivers SCIM payloads to Entra, Microsoft Entra Identity Governance takes over as the policy engine. This is where the actual provisioning intelligence lives: access packages bundle together entitlements (group memberships, app roles, SharePoint sites) into named resources that reflect real business roles. Lifecycle workflows automate tasks — sending onboarding emails, generating Temporary Access Passes, triggering manager notifications — at defined pre-hire, on-hire, and post-termination milestones.</p>
+
+  <p>The SCIM provisioning engine in Entra then fans out to every connected SaaS application. As soon as an access package is assigned to a new hire, Entra begins provisioning the applications it contains: creating a Figma account with Editor permissions, adding the user to the GitHub org in the right team, granting a Salesforce Standard User profile, and provisioning a Slack workspace invite. Each of these uses SCIM 2.0, with the state of every operation tracked and auditable in Entra's provisioning logs.</p>
+
+  <div class="callout ca-entra">
+    <div class="callout-ttl">Microsoft Entra Identity Governance — Core Concepts</div>
+    <p><strong style="color:var(--text)">Access Packages:</strong> bundles of entitlements (groups, app roles, SharePoint sites) that represent a named business role. A package called "eng-platform-starter" might include 8 app assignments.</p>
+    <p><strong style="color:var(--text)">Lifecycle Workflows:</strong> automated task sequences triggered by identity events — send TAP on day 0, notify manager 7 days before start, disable account on last day.</p>
+    <p><strong style="color:var(--text)">Access Reviews:</strong> scheduled review campaigns where managers certify whether their direct reports still need specific access. Critical for Mover governance.</p>
+    <p><strong style="color:var(--text)">Entitlement Management:</strong> the policy layer that controls who can request, approve, and receive access packages — including time-limited, guest, and cross-org access.</p>
+  </div>
+
+  <p>For Leaver scenarios, Entra's lifecycle workflows are equally powerful. A termination event from ADP triggers an immediate chain: block sign-in (<code style="font-family:var(--mono);font-size:13px;background:var(--surface-2);padding:2px 6px;border-radius:4px;color:var(--red)">accountEnabled=false</code>), revoke all refresh tokens and active SSO sessions, remove from all access packages and security groups, trigger SCIM deprovisioning to all connected apps, transfer OneDrive and Teams data to the manager, and schedule a 30-day soft delete. The entire sequence can complete in under 60 seconds. The window of exposure shrinks from days to seconds.</p>
+
+</div><!-- /article-wrap -->
+
+<!-- ── INTERACTIVE DEMO ── -->
+<div class="demo-outer">
+  <div class="demo-label">
+    <div class="demo-logo-mark">ID</div>
+    <div>
+      <div class="demo-lbl-title">Entra IGA — ADP via Aquera / SailPoint</div>
+      <div class="demo-lbl-sub">Interactive Joiner · Mover · Leaver Demo — blipbrazil.onmicrosoft.com</div>
+    </div>
+    <span class="demo-live-pill">● Live Demo</span>
+  </div>
+
+  <div class="demo-shell">
+    <div class="app">
+      <!-- Header -->
+      <div class="hdr">
+        <div class="hdr-left">
+          <div class="hdr-logo">ID</div>
+          <div>
+            <h1>Entra IGA — ADP via <em id="hdrConnName">Aquera</em></h1>
+            <div class="hdr-sub">HR-Driven Identity Lifecycle • Joiner / Mover / Leaver</div>
+          </div>
+        </div>
+        <div class="hdr-right">
+          <span class="badge badge-env">● DEMO</span>
+          <span class="badge badge-tenant">blipbrazil.onmicrosoft.com</span>
+        </div>
+      </div>
+
+      <!-- Connector Selector -->
+      <div class="connector-bar">
+        <button class="conn-btn active-aquera" id="connAquera" onclick="switchConnector('aquera')">
+          <span class="conn-dot aq"></span> Aquera HR Sync Bridge
+        </button>
+        <button class="conn-btn" id="connSailpoint" onclick="switchConnector('sailpoint')">
+          <span class="conn-dot sp"></span> SailPoint Identity Security Cloud
+        </button>
+      </div>
+
+      <!-- Architecture Banner -->
+      <div class="arch-banner" id="archBanner">
+        <div class="arch-node n-adp">
+          <div class="arch-node-label">ADP Workforce Now</div>
+          <div class="arch-node-desc">HR System of Record</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node n-conn" id="archConn">
+          <div class="arch-node-label" id="archConnLabel">Aquera Sync Bridge</div>
+          <div class="arch-node-desc" id="archConnDesc">HR Inbound Provisioning Connector</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node n-entra">
+          <div class="arch-node-label">Microsoft Entra ID</div>
+          <div class="arch-node-desc">Identity Governance &amp; SCIM Engine</div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node n-apps">
+          <div class="arch-node-label">SaaS Applications</div>
+          <div class="arch-node-desc">Figma, Salesforce, Slack, GitHub...</div>
+        </div>
+      </div>
+
+      <!-- Scenario Tabs -->
+      <div class="scenario-bar">
+        <button class="sc-tab active" data-sc="hire" onclick="switchScenario('hire')"><span class="sc-icon">🟢</span> Joiner — New Hire</button>
+        <button class="sc-tab" data-sc="move" onclick="switchScenario('move')"><span class="sc-icon">🔄</span> Mover — Dept Transfer</button>
+        <button class="sc-tab" data-sc="leave" onclick="switchScenario('leave')"><span class="sc-icon">🔴</span> Leaver — Termination</button>
+      </div>
+
+      <!-- Main Grid -->
+      <div class="main-grid">
+        <!-- LEFT -->
+        <div class="panel">
+          <div class="panel-hdr"><div class="p-icon ic-adp">⚡</div><div><div class="p-title">ADP Workforce Now</div><div class="p-sub">HR SOURCE</div></div></div>
+          <div class="panel-body" id="adpBody"></div>
+        </div>
+        <!-- CENTER -->
+        <div class="panel">
+          <div class="panel-hdr"><div class="p-icon ic-conn" id="flowIcon">◆</div><div><div class="p-title" id="flowTitle">Aquera → Entra ID Governance</div><div class="p-sub">LIFECYCLE WORKFLOW</div></div></div>
+          <div class="panel-body" id="flowBody"></div>
+        </div>
+        <!-- RIGHT -->
+        <div class="panel">
+          <div class="panel-hdr"><div class="p-icon ic-apps">⬡</div><div><div class="p-title">SaaS Authorizations</div><div class="p-sub">SCIM / SSO</div></div></div>
+          <div class="panel-body" id="appsBody"></div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="ctrl-bar">
+        <button class="btn btn-go" id="runBtn" onclick="runDemo()">▶ Run Workflow</button>
+        <button class="btn btn-rst" onclick="resetDemo()">↺ Reset</button>
+        <span class="prog" id="prog">Ready — select connector, scenario, and run</span>
+      </div>
+
+      <!-- Audit -->
+      <div class="audit">
+        <div class="audit-hdr">📋 <span id="auditTitle">Entra + Aquera Audit Log</span></div>
+        <div class="audit-body" id="auditLog"></div>
+      </div>
+    </div><!-- /app -->
+  </div><!-- /demo-shell -->
+</div><!-- /demo-outer -->
+
+<!-- CONCLUSION SECTION -->
+<div class="article-wrap">
+
+  <span class="sec-num">Section 05</span>
+  <h2>What This Means for Your Organization</h2>
+
+  <p>The interactive demo above illustrates what automated identity lifecycle management looks like end-to-end. What it cannot fully convey is the organizational transformation behind it. Before automation, provisioning a new hire at a 3,000-person company could involve six separate IT tickets, coordination across three teams, and a 48 to 72-hour delay. With ADP as the trigger, Aquera or SailPoint as the connector, and Entra as the governance engine, that same workflow completes in under 60 seconds — with every action logged, every access decision policy-driven, and every entitlement auditable.</p>
+
+  <p>The Mover scenario is often underestimated. Most security incidents involving over-provisioning come not from new hires, but from employees who changed roles and kept their old access. A Mover workflow that automatically swaps access packages — removing the Sales Ops entitlements and provisioning the CS Engineering ones — prevents the gradual accumulation of permissions that security teams call "privilege creep." Automated access reviews, scheduled post-transfer, give the new manager a clean picture and a 30-day window to certify what stays and what goes.</p>
+
+  <div class="callout ca-aquera">
+    <div class="callout-ttl">✅ Getting Started — Recommended Path</div>
+    <p><strong style="color:var(--text)">1. Audit your current state:</strong> Map every SaaS app in use, identify which have SCIM provisioning enabled in Entra, and count orphaned accounts per app.</p>
+    <p><strong style="color:var(--text)">2. Choose your connector:</strong> If you need fast time-to-value with ADP, start with Aquera HR Sync Bridge. If you need full IGA governance (certifications, SoD, role mining), evaluate SailPoint ISC.</p>
+    <p><strong style="color:var(--text)">3. Design access packages first:</strong> Before writing a single SCIM mapping, define your access package taxonomy in Entra — one package per role family (eng-platform, sales-ops, cs-engineering) with clear ownership and review cadence.</p>
+    <p><strong style="color:var(--text)">4. Start with Leaver:</strong> Automating the Leaver workflow first delivers the highest immediate security ROI. Instant deprovisioning on termination closes the most dangerous gap.</p>
+  </div>
+
+  <p>The underlying principle is straightforward: your HR system already knows the truth about your workforce. The job of an IGA platform is not to replicate that truth, but to act on it — automatically, consistently, and with a complete audit trail. ADP fires the event. Aquera or SailPoint carries the signal. Entra executes the policy. And every employee, from day one to day last, has exactly the access they need.</p>
+
+  <div class="ornament">◆ ◆ ◆</div>
+
+</div><!-- /article-wrap -->
+
+<!-- ARTICLE FOOTER -->
+<footer class="article-footer">
+  <div class="author-block">
+    <div class="author-av">CB</div>
+    <div>
+      <div class="author-name">Chender Bandaru</div>
+      <div class="author-bio">Senior Solutions Architect · Azure · Identity &amp; AI · Writing about enterprise identity, cloud governance, and agentic systems</div>
+    </div>
+  </div>
+  <div class="article-tags">
+    <span class="atag">Microsoft Entra</span>
+    <span class="atag">Identity Governance</span>
+    <span class="atag">IGA</span>
+    <span class="atag">ADP Workforce Now</span>
+    <span class="atag">Aquera</span>
+    <span class="atag">SailPoint</span>
+    <span class="atag">Joiner Mover Leaver</span>
+    <span class="atag">SCIM 2.0</span>
+    <span class="atag">Zero Trust</span>
+    <span class="atag">HR-Driven Provisioning</span>
+  </div>
+</footer>
+
+<footer class="site-footer">
+  <p>Built with the Microsoft AI ecosystem &middot; <a href="https://github.com/Bcrao" target="_blank">github.com/Bcrao</a> &middot; <a href="https://bcrao.github.io/">Back to Blog</a></p>
+</footer>
+
+<script>
+let connector = 'aquera';
+let scenario = 'hire';
+let running = false;
+
+function C() { return connector; }
+function isAq() { return connector === 'aquera'; }
+function connLabel() { return isAq() ? 'Aquera' : 'SailPoint'; }
+function connTag() { return isAq() ? '<span class="step-connector-badge aq">AQUERA</span>' : '<span class="step-connector-badge sp">SAILPOINT</span>'; }
+function actClass() { return isAq() ? 'act' : 'act-sp'; }
+
+const employees = {
+  hire: { name:'Marina Costa Silva', badge:'hire', badgeLabel:'NEW HIRE', fields:[
+    {l:'Employee ID',v:'BLP-2026-0847'},{l:'Start Date',v:'2026-05-05'},{l:'Email',v:'marina.costa@blip.ai'},
+    {l:'Department',v:'Product Engineering'},{l:'Title',v:'Sr. Platform Engineer'},{l:'Manager',v:'Rafael Mendes'},
+    {l:'Location',v:'Belo Horizonte, MG'},{l:'Cost Center',v:'CC-4200 Engineering'}
+  ]},
+  move: { name:'Lucas Ferreira Santos', badge:'move', badgeLabel:'DEPT TRANSFER', fields:[
+    {l:'Employee ID',v:'BLP-2024-0312'},{l:'Effective Date',v:'2026-05-01'},{l:'Email',v:'lucas.ferreira@blip.ai'},
+    {l:'From Dept',v:'Sales Operations'},{l:'To Dept',v:'Customer Success Eng.'},{l:'New Title',v:'Solutions Engineer'},
+    {l:'New Manager',v:'Ana Beatriz Rocha'},{l:'Location',v:'São Paulo, SP'}
+  ]},
+  leave: { name:'Pedro Almeida Nunes', badge:'leave', badgeLabel:'TERMINATED', fields:[
+    {l:'Employee ID',v:'BLP-2023-0189'},{l:'Term Date',v:'2026-04-25'},{l:'Email',v:'pedro.almeida@blip.ai'},
+    {l:'Department',v:'Growth Marketing'},{l:'Title',v:'Growth Lead'},{l:'Manager',v:'Camila Vieira'},
+    {l:'Term Reason',v:'Voluntary Resignation'},{l:'Last Day',v:'2026-04-25'}
+  ]}
+};
+
+function getSteps() {
+  const s = scenario;
+  if (s === 'hire') return [
+    { icon:'📥', t:`ADP Event → ${connLabel()} Sync`, d:isAq()
+        ? 'Aquera HR Sync Bridge polls ADP Workforce Now API, detects new worker.hire event and reads full worker profile.'
+        : 'SailPoint Identity Security Cloud receives ADP worker.hire event via configured HR source connector.',
+      m:isAq() ? 'Aquera Connector: ADP WFN REST API → SCIM transform' : 'SailPoint Source: ADP WFN • Correlation: employeeId' },
+    { icon:'🔄', t:`${connLabel()} Transforms & Maps Attributes`, d:isAq()
+        ? 'Aquera applies no-code attribute mapping rules: department + jobTitle → Entra access profile. Generates SCIM payload.'
+        : 'SailPoint Identity Profile processes transforms: department → access profile mapping. Applies identity policies and certifications.',
+      m:isAq() ? 'Aquera Rule: dept=Eng → profile=eng-platform' : 'SailPoint Transform: dept=Eng → profile=eng-platform' },
+    { icon:'📤', t:`${connLabel()} Pushes to Entra ID`, d:isAq()
+        ? 'Aquera sends SCIM bulk upload to Entra inbound provisioning /bulkUpload API endpoint with mapped attributes.'
+        : 'SailPoint provisions identity to Entra ID via MS Graph API / SCIM connector. Creates user object with all mapped attributes.',
+      m:isAq() ? 'Entra API: /bulkUpload • Format: SCIM 2.0' : 'SailPoint Target: Entra ID • Protocol: MS Graph + SCIM' },
+    { icon:'👤', t:'Entra ID Creates User & Groups', d:'Entra provisioning service processes payload — creates user marina.costa@blip.ai, assigns to security groups SG-Engineering, SG-Platform.',
+      m:'Entra: Create user + group assignments' },
+    { icon:'📦', t:'Access Package Auto-Assignment', d:'Entra ID Governance auto-assigns "Engineering Platform" access package based on lifecycle policy triggered by department attribute.',
+      m:'Package: eng-platform-starter • 8 entitlements' },
+    { icon:'🔐', t:'SCIM Provisioning to SaaS Apps', d:'Entra pushes group memberships and app role assignments to downstream SaaS apps via SCIM 2.0 and SSO connectors.',
+      m:'Protocol: SCIM 2.0 + SAML/OIDC SSO' },
+    { icon:'📧', t:'Welcome + Temporary Access Pass', d:'Lifecycle Workflow sends onboarding email with Temporary Access Pass (TAP) for passwordless first login. Manager notified.',
+      m:'TAP: 8hr lifetime • MFA enrollment required' },
+  ];
+  if (s === 'move') return [
+    { icon:'📥', t:`ADP Job Change → ${connLabel()}`, d:isAq()
+        ? 'Aquera delta sync detects department + title change on existing worker via ADP API polling cycle.'
+        : 'SailPoint aggregation detects attribute changes on existing identity from ADP source.',
+      m:isAq() ? 'Aquera: Delta sync • Changed: dept, title, manager' : 'SailPoint: Aggregation • Changed: dept, title, manager' },
+    { icon:'🔍', t:`${connLabel()} Evaluates Entitlement Delta`, d:isAq()
+        ? 'Aquera compares old profile (sales-ops) vs new profile (cs-engineering), generates differential SCIM update payload.'
+        : 'SailPoint Identity Profile recalculates entitlements. Certification policies flag removed access for review.',
+      m:isAq() ? 'Delta: +3 apps, −2 apps, ~3 role changes' : 'SailPoint Cert: +3 grant, −2 revoke, ~3 modify' },
+    { icon:'📤', t:`Push Update to Entra ID`, d:isAq()
+        ? 'Aquera pushes attribute updates via Entra /bulkUpload API — department, title, manager fields trigger group recalculation.'
+        : 'SailPoint updates Entra ID user attributes via MS Graph. Triggers dynamic group recalculation.',
+      m:'Entra: Update user + recompute dynamic groups' },
+    { icon:'📦', t:'Swap Access Packages', d:'Entra Governance removes "Sales Ops" package, auto-assigns "CS Engineering" package. Transfer approval policy applied.',
+      m:'Remove: sales-ops-pkg → Assign: cs-eng-pkg' },
+    { icon:'🔐', t:'SCIM Delta to SaaS Apps', d:'Entra deprovisions removed entitlements, provisions new apps, updates roles for retained apps via SCIM.',
+      m:'Modified: 3 • Added: 3 • Removed: 2' },
+    { icon:'✅', t:'30-Day Access Review Scheduled', d:'Entra schedules post-transfer access review for new manager to certify all entitlements within 30 days.',
+      m:'Review due: 2026-06-01 • Reviewer: Ana Beatriz' },
+  ];
+  return [
+    { icon:'📥', t:`ADP Termination → ${connLabel()}`, d:isAq()
+        ? 'Aquera detects worker status = Terminated from ADP API. Triggers immediate leaver workflow.'
+        : 'SailPoint receives termination event from ADP source aggregation. Triggers leaver lifecycle state.',
+      m:isAq() ? 'Aquera: Status change detected • Type: Voluntary' : 'SailPoint: Lifecycle state → INACTIVE' },
+    { icon:'📤', t:`${connLabel()} Signals Entra ID`, d:isAq()
+        ? 'Aquera sends disable/update payload to Entra /bulkUpload API with accountEnabled=false.'
+        : 'SailPoint disables Entra ID account via MS Graph, sets accountEnabled=false.',
+      m:'Entra: accountEnabled=false • Immediate' },
+    { icon:'🚫', t:'Block Sign-In & Revoke Sessions', d:'Entra ID blocks sign-in, revokes all refresh tokens and active SSO sessions across all connected apps.',
+      m:'Revoke-AzureADUserAllRefreshToken' },
+    { icon:'📦', t:'Remove All Access Packages', d:'Entra Governance revokes all entitlement assignments. Removes from 7 security groups and 2 access packages.',
+      m:'Packages: 2 removed • Groups: 7 removed' },
+    { icon:'🔐', t:'SCIM Deprovisioning All Apps', d:'Entra pushes deactivation to all connected SaaS apps via SCIM. Licenses reclaimed, data preserved per retention policies.',
+      m:'Apps to deprovision: 7 • Protocol: SCIM 2.0' },
+    { icon:'📁', t:'Manager Data Transfer', d:'Lifecycle Workflow transfers OneDrive, Teams data, and shared mailbox ownership to manager Camila Vieira.',
+      m:'Data: OneDrive + Teams + Shared mailbox' },
+    { icon:'🗑️', t:'30-Day Soft Delete', d:'Account enters 30-day soft delete. Recoverable during grace period. Hard delete scheduled for 2026-05-25.',
+      m:'Soft: 30 days • Hard delete: 2026-05-25' },
+  ];
+}
+
+function getApps() {
+  if (scenario === 'hire') return [
+    { nm:'Blip Platform', rl:'Platform Engineer — Full Access', logo:'💬', c:'var(--aquera)' },
+    { nm:'Figma', rl:'Editor — Engineering Workspace', logo:'🎨', c:'var(--pink)' },
+    { nm:'Salesforce', rl:'Standard User — Tech Ops', logo:'☁️', c:'var(--entra)' },
+    { nm:'GitHub Enterprise', rl:'Member — blip-platform org', logo:'🐙', c:'var(--text)' },
+    { nm:'Slack Enterprise', rl:'Member — #eng-platform', logo:'💜', c:'var(--purple)' },
+    { nm:'Jira / Confluence', rl:'Engineering Contributor', logo:'🔷', c:'var(--entra)' },
+    { nm:'Microsoft Teams', rl:'Member — Eng Team + Channels', logo:'🟦', c:'var(--entra)' },
+    { nm:'AWS IAM Identity Center', rl:'Developer — Staging Env', logo:'🟠', c:'var(--sailpoint)' },
+  ];
+  if (scenario === 'move') return [
+    { nm:'Blip Platform', rl:'Role: Sales → CS Workspace', logo:'💬', c:'var(--aquera)', fin:'mod' },
+    { nm:'Salesforce', rl:'Profile: Sales → Service Cloud', logo:'☁️', c:'var(--entra)', fin:'mod' },
+    { nm:'Figma', rl:'Viewer → Editor (CS Design)', logo:'🎨', c:'var(--pink)', fin:'mod' },
+    { nm:'Zendesk', rl:'Agent — Tier 2 Support (NEW)', logo:'🟢', c:'var(--green)', fin:'ok' },
+    { nm:'Datadog', rl:'Read-only — CS Dashboards (NEW)', logo:'🟣', c:'var(--purple)', fin:'ok' },
+    { nm:'Slack Enterprise', rl:'Channels: −#sales +#cs-eng', logo:'💜', c:'var(--purple)', fin:'mod' },
+    { nm:'HubSpot CRM', rl:'— REMOVED (Sales-only)', logo:'🟠', c:'var(--sailpoint)', fin:'rm' },
+    { nm:'Gong.io', rl:'— REMOVED (Sales-only)', logo:'📞', c:'var(--sailpoint)', fin:'rm' },
+  ];
+  return [
+    { nm:'Blip Platform', rl:'— DEACTIVATED — Bots to manager', logo:'💬', c:'var(--aquera)', fin:'rm' },
+    { nm:'Figma', rl:'— DEACTIVATED — License reclaimed', logo:'🎨', c:'var(--pink)', fin:'rm' },
+    { nm:'Salesforce', rl:'— FROZEN — Data retained 90d', logo:'☁️', c:'var(--entra)', fin:'rm' },
+    { nm:'HubSpot CRM', rl:'— DEACTIVATED — Contacts reassigned', logo:'🟠', c:'var(--sailpoint)', fin:'rm' },
+    { nm:'Google Ads', rl:'— REMOVED — Campaigns preserved', logo:'📊', c:'var(--yellow)', fin:'rm' },
+    { nm:'Slack Enterprise', rl:'— DEACTIVATED — Messages retained', logo:'💜', c:'var(--purple)', fin:'rm' },
+    { nm:'Microsoft Teams', rl:'— REMOVED — All teams', logo:'🟦', c:'var(--entra)', fin:'rm' },
+  ];
+}
+
+function getAudit() {
+  const a = actClass();
+  const cn = connLabel();
+  if (scenario === 'hire') return [
+    `<span class="ts">[09:00:01]</span> <span class="${a}">${cn.toUpperCase()}_SYNC</span> ADP worker.hire → <span class="tgt">Marina Costa Silva (BLP-2026-0847)</span>`,
+    `<span class="ts">[09:00:02]</span> <span class="${a}">${cn.toUpperCase()}_MAP</span> dept=Product Engineering → profile=<span class="tgt">eng-platform</span>`,
+    `<span class="ts">[09:00:03]</span> <span class="${a}">${cn.toUpperCase()}_PUSH</span> ${isAq()?'SCIM /bulkUpload':'MS Graph'} → Entra ID`,
+    `<span class="ts">[09:00:04]</span> <span class="${a}">ENTRA_CREATE</span> User: <span class="tgt">marina.costa@blip.ai</span> • Groups: SG-Engineering, SG-Platform`,
+    `<span class="ts">[09:00:05]</span> <span class="${a}">ACCESS_PKG</span> Auto-assigned: <span class="tgt">eng-platform-starter</span> (8 entitlements)`,
+    `<span class="ts">[09:00:06]</span> <span class="${a}">SCIM_PUSH</span> Provisioning <span class="tgt">Blip Platform, Figma</span> — ✅ Success`,
+    `<span class="ts">[09:00:07]</span> <span class="${a}">SCIM_PUSH</span> Provisioning <span class="tgt">Salesforce, GitHub Enterprise</span> — ✅ Success`,
+    `<span class="ts">[09:00:08]</span> <span class="${a}">SCIM_PUSH</span> Provisioning <span class="tgt">Slack, Jira, Teams, AWS SSO</span> — ✅ All Success`,
+    `<span class="ts">[09:00:09]</span> <span class="${a}">LIFECYCLE</span> Onboarding email + TAP sent to <span class="tgt">marina.costa@blip.ai</span>`,
+    `<span class="ts">[09:00:09]</span> <span class="${a}">COMPLETE</span> ✅ Joiner workflow finished — 8 apps via ${cn} + Entra in <span class="tgt">8.4s</span>`,
+  ];
+  if (scenario === 'move') return [
+    `<span class="ts">[08:30:01]</span> <span class="${a}">${cn.toUpperCase()}_DELTA</span> ADP worker.job-change → <span class="tgt">Lucas Ferreira (BLP-2024-0312)</span>`,
+    `<span class="ts">[08:30:02]</span> <span class="${a}">${cn.toUpperCase()}_EVAL</span> Old: <span class="wrn">sales-ops</span> → New: <span class="tgt">cs-engineering</span>`,
+    `<span class="ts">[08:30:03]</span> <span class="${a}">ENTRA_UPDATE</span> dept, title, manager → <span class="tgt">Ana Beatriz Rocha</span>`,
+    `<span class="ts">[08:30:04]</span> <span class="${a}">GROUP_SWAP</span> −<span class="wrn">SG-Sales-Ops</span> +<span class="tgt">SG-CS-Engineering</span>`,
+    `<span class="ts">[08:30:05]</span> <span class="${a}">PKG_SWAP</span> −<span class="wrn">sales-ops-pkg</span> → +<span class="tgt">cs-eng-pkg</span>`,
+    `<span class="ts">[08:30:06]</span> <span class="${a}">SCIM_MOD</span> Modified roles: <span class="tgt">Blip, Salesforce, Figma</span>`,
+    `<span class="ts">[08:30:07]</span> <span class="${a}">SCIM_ADD</span> Provisioned: <span class="tgt">Zendesk, Datadog</span> — ✅`,
+    `<span class="ts">[08:30:08]</span> <span class="err">SCIM_DEPROV</span> Removed: <span class="err">HubSpot, Gong.io</span> — 30d soft delete`,
+    `<span class="ts">[08:30:09]</span> <span class="${a}">REVIEW</span> Access review → <span class="tgt">Ana Beatriz Rocha</span> due 2026-06-01`,
+    `<span class="ts">[08:30:09]</span> <span class="${a}">COMPLETE</span> ✅ Mover workflow via ${cn} + Entra — 3 mod, 2 add, 2 rm`,
+  ];
+  return [
+    `<span class="ts">[17:00:01]</span> <span class="${a}">${cn.toUpperCase()}_SYNC</span> ADP worker.termination → <span class="tgt">Pedro Almeida (BLP-2023-0189)</span>`,
+    `<span class="ts">[17:00:02]</span> <span class="${a}">${cn.toUpperCase()}_PUSH</span> accountEnabled=false → Entra ID`,
+    `<span class="ts">[17:00:03]</span> <span class="err">BLOCK_SIGNIN</span> <span class="tgt">pedro.almeida@blip.ai</span> sign-in <span class="err">BLOCKED</span>`,
+    `<span class="ts">[17:00:03]</span> <span class="err">REVOKE</span> All refresh tokens + SSO sessions <span class="err">REVOKED</span>`,
+    `<span class="ts">[17:00:04]</span> <span class="${a}">PKG_REMOVE</span> 2 packages + 7 groups <span class="err">REMOVED</span>`,
+    `<span class="ts">[17:00:05]</span> <span class="err">SCIM_DEPROV</span> <span class="tgt">Blip, Figma, Salesforce</span> — Deactivated`,
+    `<span class="ts">[17:00:06]</span> <span class="err">SCIM_DEPROV</span> <span class="tgt">HubSpot, Google Ads, Slack, Teams</span> — Deactivated`,
+    `<span class="ts">[17:00:07]</span> <span class="${a}">DATA_XFER</span> OneDrive + Teams → Manager <span class="tgt">Camila Vieira</span>`,
+    `<span class="ts">[17:00:08]</span> <span class="wrn">SOFT_DELETE</span> Hard delete scheduled <span class="err">2026-05-25</span>`,
+    `<span class="ts">[17:00:08]</span> <span class="${a}">COMPLETE</span> ✅ Leaver workflow via ${cn} + Entra — 7 apps deprovisioned`,
+  ];
+}
+
+function renderEmployee() {
+  const e = employees[scenario];
+  let h = `<div class="sec-label">ADP Worker Record</div><div class="emp-card"><div class="emp-top"><span class="emp-name">${e.name}</span><span class="emp-badge ${e.badge}">${e.badgeLabel}</span></div><div class="emp-fields">`;
+  e.fields.forEach(f => { h += `<div class="emp-f"><div class="emp-fl">${f.l}</div><div class="emp-fv">${f.v}</div></div>`; });
+  h += '</div></div>';
+  document.getElementById('adpBody').innerHTML = h;
+}
+
+function renderSteps() {
+  const steps = getSteps();
+  let h = `<div class="sec-label">${connLabel()} + Entra Lifecycle Steps</div>`;
+  steps.forEach((s, i) => {
+    h += `<div class="flow-step" id="fs-${i}"><div class="step-dot wait" id="sd-${i}">${s.icon}</div><div class="step-body"><div class="step-t">${s.t}</div><div class="step-d">${s.d}</div><div class="step-m">${s.m}</div></div></div>`;
+    if (i < steps.length - 1) h += `<div class="flow-line" id="fl-${i}"></div>`;
+  });
+  document.getElementById('flowBody').innerHTML = h;
+  steps.forEach((_, i) => setTimeout(() => document.getElementById(`fs-${i}`)?.classList.add('vis'), 60 * i));
+}
+
+function renderApps() {
+  const apps = getApps();
+  const lbl = scenario === 'leave' ? 'Deprovisioning Targets' : scenario === 'move' ? 'Entitlement Changes' : 'Provisioning Targets';
+  let h = `<div class="sec-label">${lbl}</div>`;
+  apps.forEach((a, i) => {
+    h += `<div class="app-card" id="ac-${i}"><div class="app-logo" style="background:${a.c}15;color:${a.c}">${a.logo}</div><div class="app-info"><div class="app-nm">${a.nm}</div><div class="app-rl">${a.rl}</div></div><div class="app-st pd" id="as-${i}">pending</div></div>`;
+  });
+  document.getElementById('appsBody').innerHTML = h;
+  apps.forEach((_, i) => setTimeout(() => document.getElementById(`ac-${i}`)?.classList.add('vis'), 80 * i));
+}
+
+function updateUI() {
+  document.getElementById('hdrConnName').textContent = connLabel();
+  document.getElementById('flowTitle').textContent = `${connLabel()} → Entra ID Governance`;
+  document.getElementById('auditTitle').textContent = `Entra + ${connLabel()} Audit Log`;
+  document.getElementById('archConnLabel').textContent = isAq() ? 'Aquera Sync Bridge' : 'SailPoint ISC';
+  document.getElementById('archConnDesc').textContent = isAq() ? 'HR Inbound Provisioning Connector' : 'Identity Security Cloud Connector';
+  const icon = document.getElementById('flowIcon');
+  icon.className = isAq() ? 'p-icon ic-conn' : 'p-icon';
+  icon.style.background = isAq() ? 'var(--aquera-dim)' : 'var(--sailpoint-dim)';
+  icon.style.color = isAq() ? 'var(--aquera)' : 'var(--sailpoint)';
+  const archConn = document.getElementById('archConn');
+  archConn.querySelector('.arch-node-label').style.color = isAq() ? 'var(--aquera)' : 'var(--sailpoint)';
+  const btn = document.getElementById('runBtn');
+  btn.className = isAq() ? 'btn btn-go' : 'btn btn-go sp-mode';
+}
+
+function switchConnector(c) {
+  if (running) return;
+  connector = c;
+  document.getElementById('connAquera').className = c === 'aquera' ? 'conn-btn active-aquera' : 'conn-btn';
+  document.getElementById('connSailpoint').className = c === 'sailpoint' ? 'conn-btn active-sailpoint' : 'conn-btn';
+  resetDemo();
+}
+
+function switchScenario(s) {
+  if (running) return;
+  scenario = s;
+  document.querySelectorAll('.sc-tab').forEach(t => t.classList.toggle('active', t.dataset.sc === s));
+  resetDemo();
+}
+
+function resetDemo() {
+  running = false;
+  updateUI();
+  renderEmployee();
+  renderSteps();
+  renderApps();
+  document.getElementById('auditLog').innerHTML = '';
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('prog').textContent = `Ready — ${connLabel()} + Entra • ${scenario}`;
+}
+
+async function runDemo() {
+  if (running) return;
+  running = true;
+  document.getElementById('runBtn').disabled = true;
+  const steps = getSteps();
+  const audit = getAudit();
+  const apps = getApps();
+  const total = steps.length;
+  const doneClass = isAq() ? 'done' : 'done-sp';
+  const runClass = isAq() ? 'run' : 'run-sp';
+  const lineClass = isAq() ? 'lit' : 'lit-sp';
+  const scimStep = scenario === 'hire' ? 5 : scenario === 'move' ? 4 : 4;
+
+  for (let i = 0; i < total; i++) {
+    document.getElementById('prog').textContent = `Step ${i+1}/${total} — ${steps[i].t}`;
+    const dot = document.getElementById(`sd-${i}`);
+    dot.className = `step-dot ${runClass}`;
+    await sleep(800);
+    dot.className = `step-dot ${doneClass}`;
+    const line = document.getElementById(`fl-${i}`);
+    if (line) line.classList.add(lineClass);
+    if (i === scimStep) await provisionApps(apps);
+    const perStep = Math.ceil(audit.length / total);
+    const s = i * perStep, e = Math.min(s + perStep, audit.length);
+    for (let j = s; j < e; j++) { addAudit(audit[j]); await sleep(180); }
+    await sleep(200);
+  }
+  document.getElementById('prog').textContent = `✅ Complete via ${connLabel()} + Entra — ${apps.length} apps processed`;
+  running = false;
+}
+
+async function provisionApps(apps) {
+  for (let i = 0; i < apps.length; i++) {
+    const st = document.getElementById(`as-${i}`);
+    if (!st) continue;
+    st.className = 'app-st go';
+    st.textContent = scenario === 'leave' ? 'revoking' : 'syncing';
+    await sleep(300);
+    if (scenario === 'leave') { st.className = 'app-st rm'; st.textContent = 'deprovisioned'; }
+    else if (scenario === 'move') {
+      const fin = apps[i].fin || 'ok';
+      st.className = `app-st ${fin}`;
+      st.textContent = fin === 'rm' ? 'removed' : fin === 'mod' ? 'modified' : 'provisioned';
+    } else { st.className = 'app-st ok'; st.textContent = 'provisioned'; }
+  }
+}
+
+function addAudit(html) {
+  const log = document.getElementById('auditLog');
+  const el = document.createElement('div');
+  el.className = 'audit-e';
+  el.innerHTML = html;
+  log.appendChild(el);
+  requestAnimationFrame(() => { el.classList.add('vis'); log.scrollTop = log.scrollHeight; });
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+resetDemo();
+</script>
+</body>
+</html>

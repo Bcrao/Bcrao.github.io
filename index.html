@@ -209,6 +209,8 @@
   .tag-ai  { background: rgba(167,139,250,.12); color: var(--ms-purple); border: 1px solid rgba(167,139,250,.3); }
   .tag-nc  { background: rgba(110,231,183,.12); color: var(--ms-green);  border: 1px solid rgba(110,231,183,.3); }
   .tag-maf { background: rgba(56,189,248,.12);  color: #38bdf8;          border: 1px solid rgba(56,189,248,.3);  }
+  .tag-iga { background: rgba(0,201,167,.12);   color: #00c9a7;          border: 1px solid rgba(0,201,167,.3);   }
+  .tag-adp { background: rgba(225,29,72,.10);   color: #f87171;          border: 1px solid rgba(225,29,72,.25);  }
 
   .post-title {
     font-family: 'Syne', sans-serif;
@@ -489,6 +491,50 @@
           Read article
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </span>
+      </div>
+    </a>
+
+    <!-- POST: Entra IGA ADP Identity Lifecycle -->
+    <a class="post-card" href="blog/entra-iga-adp-identity-lifecycle.html" style="background:linear-gradient(165deg,#050c15 0%,#08152a 35%,#060f1a 65%,#04080f 100%);border-color:rgba(0,201,167,.25);position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;opacity:.055;pointer-events:none;font-family:'JetBrains Mono',monospace;font-size:9px;line-height:1.4;color:#00c9a7;white-space:pre;padding:24px;overflow:hidden;">ADP worker.hire → Aquera Sync Bridge → SCIM /bulkUpload → Entra ID
+employee_id: BLP-2026-0847  dept: Product Engineering  start: 2026-05-05
+ENTRA_CREATE  marina.costa@blip.ai  SG-Engineering  SG-Platform
+ACCESS_PKG    eng-platform-starter  8 entitlements  auto-assigned
+SCIM_PUSH     Figma · Salesforce · GitHub · Slack · Teams · Jira · AWS SSO
+LIFECYCLE     TAP sent · manager notified · MFA enrollment queued
+COMPLETE  ✅  Joiner workflow — 8 apps provisioned in 8.4s</div>
+      <div style="position:relative;z-index:1;">
+        <div class="post-tags">
+          <span class="post-tag tag-iga">Microsoft Entra IGA</span>
+          <span class="post-tag tag-adp">ADP Workforce Now</span>
+          <span class="post-tag tag-ms">Aquera</span>
+          <span class="post-tag" style="background:rgba(249,115,22,.1);color:#f97316;border:1px solid rgba(249,115,22,.25);">SailPoint</span>
+        </div>
+        <div class="post-title">HR-Driven Identity Lifecycle — Entra IGA via Aquera &amp; SailPoint</div>
+        <p class="post-excerpt" style="color:rgba(228,233,242,.55);max-width:640px;">How ADP workforce events automatically trigger Joiner / Mover / Leaver workflows in Microsoft Entra Identity Governance. A deep dive into HR-driven provisioning, SCIM 2.0 delivery, access packages, and lifecycle automation — with an interactive end-to-end demo.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+          <span style="font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;padding:4px 12px;border-radius:3px;background:rgba(0,201,167,.06);color:rgba(0,201,167,.7);border:1px solid rgba(0,201,167,.12);">Joiner · Mover · Leaver</span>
+          <span style="font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;padding:4px 12px;border-radius:3px;background:rgba(0,201,167,.06);color:rgba(0,201,167,.7);border:1px solid rgba(0,201,167,.12);">SCIM 2.0 + Access Packages</span>
+          <span style="font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;padding:4px 12px;border-radius:3px;background:rgba(0,201,167,.06);color:rgba(0,201,167,.7);border:1px solid rgba(0,201,167,.12);">Interactive Demo</span>
+        </div>
+        <div class="post-meta">
+          <span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            April 2026
+          </span>
+          <span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            12 min read
+          </span>
+          <span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Identity &amp; Security
+          </span>
+          <span class="post-cta" style="color:#00c9a7;">
+            Read article
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+        </div>
       </div>
     </a>
 
