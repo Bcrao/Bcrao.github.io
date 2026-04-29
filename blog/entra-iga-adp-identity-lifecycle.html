@@ -495,7 +495,7 @@ nav {
   <div class="hero-ascii">
 ADP Workforce Now ─────────────────────────── worker.hire()
      │                                              │
-     │  employee_id: BLP-2026-0847                  │
+     │  employee_id: CST-2026-0847                  │
      │  event_type:  hire                           │
      │  dept:        Product Engineering            │
      │  start_date:  2026-05-05                     │
@@ -708,7 +708,7 @@ ADP Workforce Now ────────────────────�
     <div class="demo-logo-mark">ID</div>
     <div>
       <div class="demo-lbl-title">Entra IGA — ADP via Aquera / SailPoint</div>
-      <div class="demo-lbl-sub">Interactive Joiner · Mover · Leaver Demo — blipbrazil.onmicrosoft.com</div>
+      <div class="demo-lbl-sub">Interactive Joiner · Mover · Leaver Demo — consortobrazil.onmicrosoft.com</div>
     </div>
     <span class="demo-live-pill">● Live Demo</span>
   </div>
@@ -726,7 +726,7 @@ ADP Workforce Now ────────────────────�
         </div>
         <div class="hdr-right">
           <span class="badge badge-env">● DEMO</span>
-          <span class="badge badge-tenant">blipbrazil.onmicrosoft.com</span>
+          <span class="badge badge-tenant">consortobrazil.onmicrosoft.com</span>
         </div>
       </div>
 
@@ -869,17 +869,17 @@ function actClass() { return isAq() ? 'act' : 'act-sp'; }
 
 const employees = {
   hire: { name:'Marina Costa Silva', badge:'hire', badgeLabel:'NEW HIRE', fields:[
-    {l:'Employee ID',v:'BLP-2026-0847'},{l:'Start Date',v:'2026-05-05'},{l:'Email',v:'marina.costa@blip.ai'},
+    {l:'Employee ID',v:'CST-2026-0847'},{l:'Start Date',v:'2026-05-05'},{l:'Email',v:'marina.costa@consorto.ai'},
     {l:'Department',v:'Product Engineering'},{l:'Title',v:'Sr. Platform Engineer'},{l:'Manager',v:'Rafael Mendes'},
     {l:'Location',v:'Belo Horizonte, MG'},{l:'Cost Center',v:'CC-4200 Engineering'}
   ]},
   move: { name:'Lucas Ferreira Santos', badge:'move', badgeLabel:'DEPT TRANSFER', fields:[
-    {l:'Employee ID',v:'BLP-2024-0312'},{l:'Effective Date',v:'2026-05-01'},{l:'Email',v:'lucas.ferreira@blip.ai'},
+    {l:'Employee ID',v:'CST-2024-0312'},{l:'Effective Date',v:'2026-05-01'},{l:'Email',v:'lucas.ferreira@consorto.ai'},
     {l:'From Dept',v:'Sales Operations'},{l:'To Dept',v:'Customer Success Eng.'},{l:'New Title',v:'Solutions Engineer'},
     {l:'New Manager',v:'Ana Beatriz Rocha'},{l:'Location',v:'São Paulo, SP'}
   ]},
   leave: { name:'Pedro Almeida Nunes', badge:'leave', badgeLabel:'TERMINATED', fields:[
-    {l:'Employee ID',v:'BLP-2023-0189'},{l:'Term Date',v:'2026-04-25'},{l:'Email',v:'pedro.almeida@blip.ai'},
+    {l:'Employee ID',v:'CST-2023-0189'},{l:'Term Date',v:'2026-04-25'},{l:'Email',v:'pedro.almeida@consorto.ai'},
     {l:'Department',v:'Growth Marketing'},{l:'Title',v:'Growth Lead'},{l:'Manager',v:'Camila Vieira'},
     {l:'Term Reason',v:'Voluntary Resignation'},{l:'Last Day',v:'2026-04-25'}
   ]}
@@ -900,7 +900,7 @@ function getSteps() {
         ? 'Aquera sends SCIM bulk upload to Entra inbound provisioning /bulkUpload API endpoint with mapped attributes.'
         : 'SailPoint provisions identity to Entra ID via MS Graph API / SCIM connector. Creates user object with all mapped attributes.',
       m:isAq() ? 'Entra API: /bulkUpload • Format: SCIM 2.0' : 'SailPoint Target: Entra ID • Protocol: MS Graph + SCIM' },
-    { icon:'👤', t:'Entra ID Creates User & Groups', d:'Entra provisioning service processes payload — creates user marina.costa@blip.ai, assigns to security groups SG-Engineering, SG-Platform.',
+    { icon:'👤', t:'Entra ID Creates User & Groups', d:'Entra provisioning service processes payload — creates user marina.costa@consorto.ai, assigns to security groups SG-Engineering, SG-Platform.',
       m:'Entra: Create user + group assignments' },
     { icon:'📦', t:'Access Package Auto-Assignment', d:'Entra ID Governance auto-assigns "Engineering Platform" access package based on lifecycle policy triggered by department attribute.',
       m:'Package: eng-platform-starter • 8 entitlements' },
@@ -953,17 +953,17 @@ function getSteps() {
 
 function getApps() {
   if (scenario === 'hire') return [
-    { nm:'Blip Platform', rl:'Platform Engineer — Full Access', logo:'💬', c:'var(--aquera)' },
+    { nm:'Consorto Platform', rl:'Platform Engineer — Full Access', logo:'💬', c:'var(--aquera)' },
     { nm:'Figma', rl:'Editor — Engineering Workspace', logo:'🎨', c:'var(--pink)' },
     { nm:'Salesforce', rl:'Standard User — Tech Ops', logo:'☁️', c:'var(--entra)' },
-    { nm:'GitHub Enterprise', rl:'Member — blip-platform org', logo:'🐙', c:'var(--text)' },
+    { nm:'GitHub Enterprise', rl:'Member — consorto-platform org', logo:'🐙', c:'var(--text)' },
     { nm:'Slack Enterprise', rl:'Member — #eng-platform', logo:'💜', c:'var(--purple)' },
     { nm:'Jira / Confluence', rl:'Engineering Contributor', logo:'🔷', c:'var(--entra)' },
     { nm:'Microsoft Teams', rl:'Member — Eng Team + Channels', logo:'🟦', c:'var(--entra)' },
     { nm:'AWS IAM Identity Center', rl:'Developer — Staging Env', logo:'🟠', c:'var(--sailpoint)' },
   ];
   if (scenario === 'move') return [
-    { nm:'Blip Platform', rl:'Role: Sales → CS Workspace', logo:'💬', c:'var(--aquera)', fin:'mod' },
+    { nm:'Consorto Platform', rl:'Role: Sales → CS Workspace', logo:'💬', c:'var(--aquera)', fin:'mod' },
     { nm:'Salesforce', rl:'Profile: Sales → Service Cloud', logo:'☁️', c:'var(--entra)', fin:'mod' },
     { nm:'Figma', rl:'Viewer → Editor (CS Design)', logo:'🎨', c:'var(--pink)', fin:'mod' },
     { nm:'Zendesk', rl:'Agent — Tier 2 Support (NEW)', logo:'🟢', c:'var(--green)', fin:'ok' },
@@ -973,7 +973,7 @@ function getApps() {
     { nm:'Gong.io', rl:'— REMOVED (Sales-only)', logo:'📞', c:'var(--sailpoint)', fin:'rm' },
   ];
   return [
-    { nm:'Blip Platform', rl:'— DEACTIVATED — Bots to manager', logo:'💬', c:'var(--aquera)', fin:'rm' },
+    { nm:'Consorto Platform', rl:'— DEACTIVATED — Bots to manager', logo:'💬', c:'var(--aquera)', fin:'rm' },
     { nm:'Figma', rl:'— DEACTIVATED — License reclaimed', logo:'🎨', c:'var(--pink)', fin:'rm' },
     { nm:'Salesforce', rl:'— FROZEN — Data retained 90d', logo:'☁️', c:'var(--entra)', fin:'rm' },
     { nm:'HubSpot CRM', rl:'— DEACTIVATED — Contacts reassigned', logo:'🟠', c:'var(--sailpoint)', fin:'rm' },
@@ -987,36 +987,36 @@ function getAudit() {
   const a = actClass();
   const cn = connLabel();
   if (scenario === 'hire') return [
-    `<span class="ts">[09:00:01]</span> <span class="${a}">${cn.toUpperCase()}_SYNC</span> ADP worker.hire → <span class="tgt">Marina Costa Silva (BLP-2026-0847)</span>`,
+    `<span class="ts">[09:00:01]</span> <span class="${a}">${cn.toUpperCase()}_SYNC</span> ADP worker.hire → <span class="tgt">Marina Costa Silva (CST-2026-0847)</span>`,
     `<span class="ts">[09:00:02]</span> <span class="${a}">${cn.toUpperCase()}_MAP</span> dept=Product Engineering → profile=<span class="tgt">eng-platform</span>`,
     `<span class="ts">[09:00:03]</span> <span class="${a}">${cn.toUpperCase()}_PUSH</span> ${isAq()?'SCIM /bulkUpload':'MS Graph'} → Entra ID`,
-    `<span class="ts">[09:00:04]</span> <span class="${a}">ENTRA_CREATE</span> User: <span class="tgt">marina.costa@blip.ai</span> • Groups: SG-Engineering, SG-Platform`,
+    `<span class="ts">[09:00:04]</span> <span class="${a}">ENTRA_CREATE</span> User: <span class="tgt">marina.costa@consorto.ai</span> • Groups: SG-Engineering, SG-Platform`,
     `<span class="ts">[09:00:05]</span> <span class="${a}">ACCESS_PKG</span> Auto-assigned: <span class="tgt">eng-platform-starter</span> (8 entitlements)`,
-    `<span class="ts">[09:00:06]</span> <span class="${a}">SCIM_PUSH</span> Provisioning <span class="tgt">Blip Platform, Figma</span> — ✅ Success`,
+    `<span class="ts">[09:00:06]</span> <span class="${a}">SCIM_PUSH</span> Provisioning <span class="tgt">Consorto Platform, Figma</span> — ✅ Success`,
     `<span class="ts">[09:00:07]</span> <span class="${a}">SCIM_PUSH</span> Provisioning <span class="tgt">Salesforce, GitHub Enterprise</span> — ✅ Success`,
     `<span class="ts">[09:00:08]</span> <span class="${a}">SCIM_PUSH</span> Provisioning <span class="tgt">Slack, Jira, Teams, AWS SSO</span> — ✅ All Success`,
-    `<span class="ts">[09:00:09]</span> <span class="${a}">LIFECYCLE</span> Onboarding email + TAP sent to <span class="tgt">marina.costa@blip.ai</span>`,
+    `<span class="ts">[09:00:09]</span> <span class="${a}">LIFECYCLE</span> Onboarding email + TAP sent to <span class="tgt">marina.costa@consorto.ai</span>`,
     `<span class="ts">[09:00:09]</span> <span class="${a}">COMPLETE</span> ✅ Joiner workflow finished — 8 apps via ${cn} + Entra in <span class="tgt">8.4s</span>`,
   ];
   if (scenario === 'move') return [
-    `<span class="ts">[08:30:01]</span> <span class="${a}">${cn.toUpperCase()}_DELTA</span> ADP worker.job-change → <span class="tgt">Lucas Ferreira (BLP-2024-0312)</span>`,
+    `<span class="ts">[08:30:01]</span> <span class="${a}">${cn.toUpperCase()}_DELTA</span> ADP worker.job-change → <span class="tgt">Lucas Ferreira (CST-2024-0312)</span>`,
     `<span class="ts">[08:30:02]</span> <span class="${a}">${cn.toUpperCase()}_EVAL</span> Old: <span class="wrn">sales-ops</span> → New: <span class="tgt">cs-engineering</span>`,
     `<span class="ts">[08:30:03]</span> <span class="${a}">ENTRA_UPDATE</span> dept, title, manager → <span class="tgt">Ana Beatriz Rocha</span>`,
     `<span class="ts">[08:30:04]</span> <span class="${a}">GROUP_SWAP</span> −<span class="wrn">SG-Sales-Ops</span> +<span class="tgt">SG-CS-Engineering</span>`,
     `<span class="ts">[08:30:05]</span> <span class="${a}">PKG_SWAP</span> −<span class="wrn">sales-ops-pkg</span> → +<span class="tgt">cs-eng-pkg</span>`,
-    `<span class="ts">[08:30:06]</span> <span class="${a}">SCIM_MOD</span> Modified roles: <span class="tgt">Blip, Salesforce, Figma</span>`,
+    `<span class="ts">[08:30:06]</span> <span class="${a}">SCIM_MOD</span> Modified roles: <span class="tgt">Consorto, Salesforce, Figma</span>`,
     `<span class="ts">[08:30:07]</span> <span class="${a}">SCIM_ADD</span> Provisioned: <span class="tgt">Zendesk, Datadog</span> — ✅`,
     `<span class="ts">[08:30:08]</span> <span class="err">SCIM_DEPROV</span> Removed: <span class="err">HubSpot, Gong.io</span> — 30d soft delete`,
     `<span class="ts">[08:30:09]</span> <span class="${a}">REVIEW</span> Access review → <span class="tgt">Ana Beatriz Rocha</span> due 2026-06-01`,
     `<span class="ts">[08:30:09]</span> <span class="${a}">COMPLETE</span> ✅ Mover workflow via ${cn} + Entra — 3 mod, 2 add, 2 rm`,
   ];
   return [
-    `<span class="ts">[17:00:01]</span> <span class="${a}">${cn.toUpperCase()}_SYNC</span> ADP worker.termination → <span class="tgt">Pedro Almeida (BLP-2023-0189)</span>`,
+    `<span class="ts">[17:00:01]</span> <span class="${a}">${cn.toUpperCase()}_SYNC</span> ADP worker.termination → <span class="tgt">Pedro Almeida (CST-2023-0189)</span>`,
     `<span class="ts">[17:00:02]</span> <span class="${a}">${cn.toUpperCase()}_PUSH</span> accountEnabled=false → Entra ID`,
-    `<span class="ts">[17:00:03]</span> <span class="err">BLOCK_SIGNIN</span> <span class="tgt">pedro.almeida@blip.ai</span> sign-in <span class="err">BLOCKED</span>`,
+    `<span class="ts">[17:00:03]</span> <span class="err">BLOCK_SIGNIN</span> <span class="tgt">pedro.almeida@consorto.ai</span> sign-in <span class="err">BLOCKED</span>`,
     `<span class="ts">[17:00:03]</span> <span class="err">REVOKE</span> All refresh tokens + SSO sessions <span class="err">REVOKED</span>`,
     `<span class="ts">[17:00:04]</span> <span class="${a}">PKG_REMOVE</span> 2 packages + 7 groups <span class="err">REMOVED</span>`,
-    `<span class="ts">[17:00:05]</span> <span class="err">SCIM_DEPROV</span> <span class="tgt">Blip, Figma, Salesforce</span> — Deactivated`,
+    `<span class="ts">[17:00:05]</span> <span class="err">SCIM_DEPROV</span> <span class="tgt">Consorto, Figma, Salesforce</span> — Deactivated`,
     `<span class="ts">[17:00:06]</span> <span class="err">SCIM_DEPROV</span> <span class="tgt">HubSpot, Google Ads, Slack, Teams</span> — Deactivated`,
     `<span class="ts">[17:00:07]</span> <span class="${a}">DATA_XFER</span> OneDrive + Teams → Manager <span class="tgt">Camila Vieira</span>`,
     `<span class="ts">[17:00:08]</span> <span class="wrn">SOFT_DELETE</span> Hard delete scheduled <span class="err">2026-05-25</span>`,
